@@ -1,0 +1,17 @@
+---
+title: "R Ladies Rome presents: Principles of Data Analysis in R"
+subtitle: "An Introductory Guide Series"
+description: "This series covers fundamental principles and best practices for conducting data analysis using R programming language."
+author: "R Ladies Rome Instructors Team"
+date: "17 December 2025"
+---
+
+**Teaching R** means learning how to think with data using R as a practical analytical tool.
+
+**Our approach focuses on real workflows**: importing data, cleaning and transforming it, exploring patterns, applying appropriate statistical methods, and communicating results clearly. The emphasis is not on memorising functions, but on developing sound analytical reasoning, reproducible practices, and confidence in interpreting outputs. R is used as a support for analysis, not as an end in itself.
+
+This series of guides aims to provide a comprehensive introduction to the principles of data analysis using R. Each guide focuses on a specific aspect of data analysis, from data cleaning and manipulation to visualization and statistical modelling. The guides are designed for beginners and intermediate users who want to enhance their skills in R programming and data analysis.
+
+
+
+

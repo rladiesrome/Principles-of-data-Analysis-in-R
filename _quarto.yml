@@ -1,0 +1,84 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  open-graph: true
+  page-navigation: true
+  back-to-top-navigation: true
+  site-url: "https://rladiesrome.github.io/Exploring-Diabetes-Data/" 
+  repo-url: "https://github.com/rladiesrome/Exploring-Diabetes-Data"
+  favicon: images/logo.png
+  announcement: 
+    icon: info-circle
+    dismissable: true
+    content: "**Alert** - Course 1: Wednesday, 17 December 2025 at 18:00 CEST."
+    type: info
+    position: below-navbar
+  repo-actions: [edit, issue]
+  twitter-card:
+    creator: "@rladiesrome"
+    
+  navbar:
+    title: "Principles of Data Analysis in R"
+    collapse: true  
+    background: "#9b549c"
+    right:
+      - text: "About Us"
+        href: about.qmd
+      - icon: globe
+        href: "https://rladiesrome.org/"
+      - icon: github
+        href: "https://github.com/rladiesrome"
+        
+  sidebar:
+    logo: "images/homepage-logo.png"
+    style: "docked"
+    search: true
+    collapse-level: 1
+    contents:
+      - text: "1. Welcome"
+        href: index.qmd
+      - text: "2. Getting Started"
+        href: 01-getting-started.qmd
+      - section: "3. Data Analytics"
+        contents:
+          - text: "3.1 Exploring Diabetes Data"
+            href: 02-exploring-diabetes-data.qmd
+        
+  page-footer:
+    border: true
+    background: "#9b549c"
+    left: |
+      Copyright © 2025 <a href="https://www.rladiesrome.org/">RLadiesRome Learning | RConsortium</a><br> Designer & Maintainer: <a href="https://github.com/Fgazzelloni">Federica Gazzelloni</a><br> Powered by: <a href="https://quarto.org/">Quarto & GitHub Pages | <a href="/LICENSE.md">MIT License.</a>
+    center: |
+      <a href="https://www.rladiesrome.org/" target="_blank">
+      <img src="images/rconsortium.png" alt="rconsortium logo" style="height:60px;"></a>
+    right:
+      - icon: github
+        href: "https://github.com/rladiesrome/Exploring-Diabetes-Data"
+      - icon: linkedin
+        href: "https://www.linkedin.com/company/rladiesrome"
+      - icon: globe
+        href: "https://www.rladies.org/"
+      - icon: envelope
+        href: mailto:rome@rladies.com        
+        
+format:
+  html:
+    theme: cosmo
+    toc: false
+    highlight-style: github 
+    smooth-scroll: true
+    link-external-newwindow: true
+    citations-hover: true
+    footnotes-hover: true
+    code-copy: true
+    code-overflow: wrap
+    code-link: true
+    linestretch: 1.7 
+   
+
+editor: visual
+execute:
+  freeze: auto 

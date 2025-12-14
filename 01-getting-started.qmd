@@ -1,0 +1,85 @@
+---
+title: "Getting Started with R and RStudio"
+subtitle: "Introduction to R Programming Environment"
+description: "This guide helps beginners set up R and RStudio and introduces basic R programming concepts."
+---
+
+## Overview
+
+Welcome to the "Getting Started with R and RStudio" guide! This guide is designed to help beginners set up their R programming environment and get familiar with the basics of R and RStudio.
+
+## Installing R and RStudio
+
+1. **Install R**: 
+
+   - Go to the [CRAN website](https://cran.r-project.org/) and download the latest version of R for your operating system (Windows, macOS, or Linux).
+   - Follow the installation instructions provided on the website.
+2. **Install RStudio**:
+
+   - Visit the [RStudio website](https://rstudio.com/products/rstudio/download/)
+   - Download the free version of RStudio Desktop and install it on your computer.
+3. **Launch RStudio**: Open RStudio after installation. You should see the RStudio interface with multiple panes.
+
+
+## RStudio Interface Overview
+
+The RStudio interface consists of several key panes:
+
+- **Source Pane**: This is where you can write and edit your R scripts and R Markdown documents.
+- **Console Pane**: This is where you can type and execute R commands directly.
+- **Environment/History Pane**: This pane shows the variables and data frames in your current R session, as well as a history of commands you've executed.
+- **Files/Plots/Packages/Help/Viewer Pane**: This pane allows you to navigate files, view plots, manage packages, access help documentation, and view web content.
+
+## Writing Your First R Script  
+
+1. In the Source Pane, click on "File" > "New File" > "R Script" to create a new R script.
+
+2. Type the following code into the script:
+```{r}
+2+2
+```
+
+3. To run the code, highlight the line and click the "Run" button or press `Ctrl + Enter` (Windows) or `Cmd + Enter` (Mac). You should see the output `4` in the Console Pane.
+
+## Basic R Commands
+
+Here are some basic R commands to get you started:
+
+- Assigning values to variables:
+```{r}
+x <- 10
+y <- 5
+```
+- Performing arithmetic operations:
+```{r}
+sum <- x + y
+product <- x * y
+```
+- Creating a vector:
+```{r}
+my_vector <- c(1, 2, 3, 4, 5)
+```
+- Viewing the contents of a variable:
+```{r}
+print(my_vector)
+```
+
+## Installing and Loading Packages
+
+R has a vast ecosystem of packages that extend its functionality. To install and load packages, follow these steps:
+
+1. To install a package, use the `install.packages()` function. For example,
+```{r}
+#| eval: false
+install.packages("ggplot2")
+```
+2. To load a package into your R session, use the `library()` function:
+```{r}
+library(ggplot2)
+```
+
+## Next Steps
+
+Now that you have set up R and RStudio and learned some basic commands, you can explore more advanced topics in R programming and data analysis. Check out the next guide in this series, [From Basics to Advanced Health Analytics: Exploring Diabetes Data](02-exploring-diabetes-data.qmd), to dive deeper into data analysis using R.
+
+

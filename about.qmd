@@ -1,0 +1,42 @@
+---
+title: "About Us"
+---
+
+We teach R as a tool for data analysis, not as an abstract programming language. Our sessions focus on clear workflows, reproducible analysis, and interpretation of results using real-world examples.
+
+The project is curated by [Rafaela Ribeiro Lucas](https://www.linkedin.com/in/rafaelagrlucas/), [Federica Gazzelloni](https://www.linkedin.com/in/federicagazzelloni/), and [Lucy Michaels](https://www.linkedin.com/in/lucymichaels/). Together, we combine experience in statistics, data science, and applied research to deliver practical, accessible, and methodologically sound R training.
+
+## Bios of the Instructors
+
+::::{.columns}
+::: {.column width="60%"}
+[Rafaela Ribeiro Lucas](https://www.linkedin.com/in/rafaelagrlucas/) Lucas is a Nutritionist with academic training from the Federal University of Pelotas (UFPel) and a postgraduate degree in Eating Behavior from Institute of Research, Teaching, and Health Management (iPGS). And a Master’s degree in Cardiology and Cardiovascular Sciences at the Federal University of Rio Grande do Sul (UFRGS)
+Her work is based on methodological and statistical applications in the investigation of cardiovascular risk factors and disease.
+She is passionate about Population Epidemiology, Epidemiological Surveillance, and analytical methods for longitudinal studies and complex survey designs.
+:::
+::: {.column width="40%"}
+![](images/profile-images/rb.png)
+:::
+::::
+
+::::{.columns}
+::: {.column width="60%"}
+[Federica Gazzelloni](https://www.linkedin.com/in/federicagazzelloni/) is an independent researcher, statistician, and instructor specialising in data visualisation, statistical modelling, and data-driven storytelling. She leads R-Ladies Rome and co-organises the Rome R Users Group, promoting inclusive, hands-on learning for the local R and data-science community. Federica collaborates with international organisations, contributes to open-source projects, and develops educational resources spanning R, spatial analysis, and health metrics. She is passionate about building welcoming spaces where people can learn, experiment, and meet others who share a curiosity for data.
+:::
+::: {.column width="40%"}
+![](images/profile-images/fg.png)
+:::
+::::
+
+::::{.columns}
+::: {.column width="60%"}
+[Lucy Michaels](https://www.linkedin.com/in/lucymichaels/) is a Data Scientist with academic training from Unitelma Sapienza, where she completed a Master’s degree in Analysis and Modeling of Data and Processes. She specialises in applied statistics, machine learning, and analytical modelling for complex real-world problems.
+Her recent work focuses on methodological and statistical approaches for understanding pedestrian-accident risk in urban environments, integrating multi-source datasets on visibility, weather, twilight phases, road conditions, and vehicle involvement.
+She is passionate about urban mobility analytics, public-health informatics, and data-driven decision-making for safer cities. Her interests include geospatial analysis, mixed-data clustering and designing reproducible analytical pipelines.
+:::
+::: {.column width="40%"}
+![](images/profile-images/lm.png)
+:::
+::::
+
+Follow Us on [Meetup: RLadiesRome](https://www.meetup.com/rladies-rome)

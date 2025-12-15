@@ -7,7 +7,8 @@ website:
   page-navigation: true
   back-to-top-navigation: true
   site-url: "https://rladiesrome.github.io/Principles-of-data-Analysis-in-R" 
-  repo-url: "https://github.com/rladiesrome/Principles-of-data-Analysis-in-R"
+  repo-url: "https://github.com/rlad
+  iesrome/Principles-of-data-Analysis-in-R"
   favicon: images/logo.png
   announcement: 
     icon: info-circle

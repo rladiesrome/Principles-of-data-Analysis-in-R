@@ -1,11 +1,11 @@
 ---
 title: "From Basics to Advanced Health Analytics: Exploring Diabetes Data"
 subtitle: "An Exploratory Data Analysis (EDA) Tutorial"
-author: "Rafaela Ribeiro Lucas, Federica Gazzelloni, and Lucy Michaels "
+author: "Rafaela Ribeiro Lucas, Federica Gazzelloni, and Lucy Michaels"
 date: "17 December, 2025"
 description: |
   This tutorial demonstrates exploratory data analysis (EDA) techniques on a simulated diabetes dataset for the years 2015 and 2025, covering data import, pre-processing, visualization, summary statistics, prevalence calculation, and statistical inference.
-categories: [Tutorials, EDA, Diabetes, R Ladies Rome]
+categories: [Tutorials, EDA, Diabetes, Clustering]
 tags: [R, EDA, Diabetes, Data Analysis, Statistics]
 execute:
   echo: true
@@ -32,7 +32,6 @@ To explore how diabetes prevalence and characteristics vary over time and across
 -   Summary Statistics
 -   Prevalence Calculation
 -   Qualitative Statistical Inference
-
 
 > Why Diabetes?
 
@@ -102,14 +101,12 @@ Data are stored in one Excel file with two sheets: one for 2015 and one for 2025
 We use the `read_excel` function from the `readxl` package to read the data and the `clean_names` function from the `janitor` package to clean the column names.
 
 ```{r}
-path <- "data/diabetes_study_filled.xlsx"
+path <- "data/diabetes_study_filled_NEW.xlsx"
 
 d2015 <- readxl::read_excel(path, 
-                            sheet = "2015") |> 
-  janitor::clean_names()
+                            sheet = "2015") 
 d2025 <- readxl::read_excel(path, 
-                            sheet = "2025") |> 
-  janitor::clean_names()
+                            sheet = "2025") 
 ```
 
 ## Pre-processing
@@ -125,7 +122,8 @@ In particular, we use the `bind_rows` function from the `dplyr` package to stack
 ```{r}
 data_raw <- bind_rows(
   d2015 |> mutate(year = 2015),
-  d2025 |> mutate(year = 2025))
+  d2025 |> mutate(year = 2025)) |> 
+  janitor::clean_names()
 ```
 
 ### Data Inspection
@@ -171,14 +169,17 @@ In this case , we create three derived variables:
 This step involves using the `mutate` function from the `dplyr` package to create new columns based on conditions applied to existing columns. And we use the `if_else` and `case_when` functions to define the logic for these new variables.
 
 ```{r}
-diabetes_data <- data_raw |>
+df_diabetes <- data_raw |>
   mutate(
+    # Laboratory-defined diabetes
     diabetes_lab = if_else(lab_hba1c >= 6.5, "yes", "no", missing = NA_character_),
+    # Total diabetes (self-report OR laboratory, excluding gestational diabetes)
     diabetes_total = case_when(
       gestational_diabetes == "yes" ~ "no",
       diabetes_self_report == "yes" | diabetes_lab == "yes" ~ "yes",
       TRUE ~ "no"
     ),
+    # Age groups
     age_group = case_when(
       age < 50 ~ "40–49",
       age < 60 ~ "50–59",
@@ -189,7 +190,7 @@ diabetes_data <- data_raw |>
 
 ## Exploratory data Analysis (EDA)
 
-Exploratory Data Analysis (EDA) is a crucial step in understanding the underlying patterns, relationships, and distributions within a dataset. It involves using various statistical and graphical techniques to summarize and visualize the data. EDA helps to identify potential issues, outliers, and trends that may inform subsequent analyses or modelling efforts. 
+Exploratory Data Analysis (EDA) is a crucial step in understanding the underlying patterns, relationships, and distributions within a dataset. It involves using various statistical and graphical techniques to summarize and visualize the data. EDA helps to identify potential issues, outliers, and trends that may inform subsequent analyses or modelling efforts.
 
 ### Distribution plot for HbA1c (2015 only)
 
@@ -214,7 +215,7 @@ ggplot(data = d2015,
 To compare the distribution of **HbA1c levels between 2015 and 2025**, we can create a density plot that overlays the distributions for both years. This will allow us to visually assess any changes in HbA1c levels over time.
 
 ```{r}
-diabetes_data %>%
+df_diabetes %>%
   ggplot(aes(x = lab_hba1c, 
            fill = as.factor(year))) +
   geom_density(alpha = 0.5) +
@@ -229,7 +230,7 @@ diabetes_data %>%
 To check the age distribution for both years, we can create overlapping histograms. This will help us visualize how the age distribution of the population has changed from 2015 to 2025.
 
 ```{r}
-ggplot(data = diabetes_data,
+ggplot(data = df_diabetes,
        mapping = aes(x = age, 
                      fill = factor(year))) +
   geom_histogram(position = "identity", 
@@ -240,11 +241,10 @@ ggplot(data = diabetes_data,
        y = "Count")
 ```
 
-
 ### Age Boxplots
 
 ```{r}
-ggplot(diabetes_data,
+ggplot(df_diabetes,
        aes(x = factor(year), y = age, 
            fill = factor(year))) +
   geom_boxplot() +
@@ -255,14 +255,12 @@ ggplot(diabetes_data,
        fill = "Year") 
 ```
 
-
 ## Summary Statistics
 
-Now that we have explored the data visually, we can compute some summary statistics to quantify key characteristics of the dataset, and compare them across the two years. 
-
+Now that we have explored the data visually, we can compute some summary statistics to quantify key characteristics of the dataset, and compare them across the two years.
 
 ```{r}
-diabetes_data |>
+df_diabetes |>
   summarise(
     n = n(),
     age_mean = mean(age, na.rm = TRUE),
@@ -283,7 +281,7 @@ The mean age is approximately 56 years, with a standard deviation of about 12 ye
 To compare these statistics by year, we can use the `group_by` function to group the data by the `year` variable before summarising.
 
 ```{r}
-diabetes_data |>
+df_diabetes |>
   group_by(year) |>
   summarise(
     n = n(),
@@ -292,22 +290,13 @@ diabetes_data |>
     )
 ```
 
-Or, with the `table()` function we can create a contingency table showing the distribution of diabetes status across the two years.
-
-```{r}
-table_diabetes_year <- table(diabetes_data$year,
-                             diabetes_data$diabetes_total)
-
-table_diabetes_year
-```
-
 
 ## Prevalence Calculation
 
 To calculate the prevalence of diabetes for each year, we can use the `group_by` and `summarise` functions to compute the mean of the binary indicator for diabetes status.
 
 ```{r}
-prev_diabetes <- diabetes_data |>
+prev_diabetes <- df_diabetes |>
   group_by(year, diabetes_total) |>
   summarise(n = n(), .groups = "drop") |>
   group_by(year) |> 
@@ -317,7 +306,7 @@ prev_diabetes
 ```
 
 ```{r}
-prev_summary <- diabetes_data |>
+prev_summary <- df_diabetes |>
   group_by(year) |>
   summarise(prev_diabetes = mean(diabetes_total == "yes", 
                                  na.rm=TRUE))
@@ -329,7 +318,7 @@ prev_summary
 To calculate prevalence with confidence intervals, we can use the `prop.test` function within a custom summarise operation.
 
 ```{r}
-prev_ci <- diabetes_data |>
+prev_ci <- df_diabetes |>
   group_by(year) |>
   summarise(
     n = n(),
@@ -361,13 +350,12 @@ ggplot(prev_ci,
        fill = "Year")
 ```
 
-
 ### Interaction
 
 To explore the interaction between gender, age, and diabetes status, we can create a faceted bar plot. This plot will show the distribution of diabetes status across different age groups, separated by gender.
 
 ```{r}
-ggplot(diabetes_data, 
+ggplot(df_diabetes, 
        aes(x = age_group, 
            fill = diabetes_total)) +
   geom_bar(position = "fill") +
@@ -382,7 +370,7 @@ ggplot(diabetes_data,
 Interaction between gender, age and diabetes
 
 ```{r}
-ggplot(diabetes_data, 
+ggplot(df_diabetes, 
        aes(x = diabetes_total, y = age, 
            fill = sex)) +
   geom_boxplot(alpha = 0.6, 
@@ -393,7 +381,6 @@ ggplot(diabetes_data,
        fill = "Gender") 
 ```
 
-
 ## Qualitative Statistical Inference
 
 To answer our research questions regarding diabetes prevalence, we will use the **Chi-Square Test of Independence**. This test is appropriate for categorical data and helps us determine whether there is a significant association between two categorical variables.
@@ -403,12 +390,11 @@ To answer our research questions regarding diabetes prevalence, we will use the 
 ### Chi-square Test for Year and Diabetes Status
 
 ```{r}
-table_year <- table(diabetes_data$year, 
-                    diabetes_data$diabetes_total)
+table_year <- table(df_diabetes$year, 
+                    df_diabetes$diabetes_total)
 
 table_year
 ```
-
 
 ```{r}
 chi_year <- chisq.test(table_year)
@@ -416,12 +402,11 @@ chi_year <- chisq.test(table_year)
 chi_year
 ```
 
-The p-value is below 0.05, so we reject the null hypothesis and conclude that prevalence differs between 2015 and 2025 in this dataset. 
+The p-value is below 0.05, so we reject the null hypothesis and conclude that prevalence differs between 2015 and 2025 in this dataset.
 
 ```{r}
 chi_year$expected
 ```
-
 
 ```{r}
 # Standardized Residuals
@@ -429,24 +414,21 @@ res_year <- chi_year$stdres
 res_year
 ```
 
-
 > Question 2: Will the prevalence of diabetes differ significantly between countries in the year 2025?
 
 ### Chi-square Test for Country and Diabetes Status in 2025
 
 ```{r}
-diabetes_data_2025 <- diabetes_data |> filter(year == 2025)
+df_diabetes_2025 <- df_diabetes |> filter(year == 2025)
 ```
 
 Contingency table for countries and diabetes
 
 ```{r}
-tab_2025 <- table(diabetes_data_2025$country,
-                  diabetes_data_2025$diabetes_total)
+tab_2025 <- table(df_diabetes_2025$country,
+                  df_diabetes_2025$diabetes_total)
 tab_2025
 ```
-
-
 
 ```{r}
 chi_2025 <- chisq.test(tab_2025)
@@ -458,7 +440,6 @@ The p-value is greater than 0.05. Therefore, we fail to reject the null hypothes
 ```{r}
 chi_2025$expected
 ```
-
 
 ```{r}
 # Standardized Residuals
@@ -473,7 +454,8 @@ mosaicplot(tab_2025,
            main = "Mosaic Plot — Diabetes by Country (2025)",
            color = TRUE, las = 1)
 ```
-:::{.callout-note appearance="simple" title="Interpretation"}
+
+::: {.callout-note appearance="simple" title="Interpretation"}
 Interpretation: We fail to reject the null hypothesis. There is no statistically significant evidence that diabetes prevalence differs between countries in 2025 at the 5% significance level.
 
 Although some countries show larger deviations from expected counts, these differences are not strong enough, overall, to conclude that prevalence differs significantly across countries.
@@ -484,29 +466,27 @@ Although some countries show larger deviations from expected counts, these diffe
 ### Frequency Table for BMI Categories
 
 ```{r}
-crosstable(diabetes_data, by = "year", 
+crosstable(df_diabetes, by = "year", 
            cols = c("sex","diabetes_total",
                     "bmi_cat","country","sdi")) %>%
   as_flextable() 
 ```
-
 
 ### BMI Categories by Year
 
 The distribution of BMI categories by year can be examined using counts and proportions.
 
 ```{r}
-diabetes_data |>
+df_diabetes |>
   count(year, bmi_cat) |>
   group_by(year) |>
   mutate(prop = n / sum(n))
 ```
 
-
 ### Visualizing BMI Categories by Year
 
 ```{r}
-ggplot(data = diabetes_data, 
+ggplot(data = df_diabetes, 
        aes(x = bmi_cat, fill = factor(year))) +
   geom_bar(position = "dodge") +
   labs(title = "BMI categories by year",
@@ -518,7 +498,7 @@ ggplot(data = diabetes_data,
 ### Proportional Distribution of BMI Categories by Year
 
 ```{r}
-ggplot(diabetes_data, 
+ggplot(df_diabetes, 
        aes(x = bmi_cat, fill = factor(year))) +
   geom_bar(position = "fill") +
   scale_y_continuous(labels = scales::percent) +
@@ -526,5 +506,16 @@ ggplot(diabetes_data,
        x = "BMI category",
        y = "Proportion",
        fill = "Year")
+```
+
+
+## Clustering
+
+To explore potential patterns in the data, we can perform clustering analysis based on age and HbA1c levels. Clustering helps to identify groups of individuals with similar characteristics.
+
+### Data Preparation for Clustering
+
+```{r}
+str(df_diabetes_2025)
 ```
 

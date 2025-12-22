@@ -301,6 +301,19 @@ window.Quarto = {
   </ul>
 </li>
   <li>
+<a href="#k-prototypes-clustering" id="toc-k-prototypes-clustering" class="nav-link" data-scroll-target="#k-prototypes-clustering">K-prototypes Clustering</a>
+  <ul class="collapse">
+<li><a href="#data-preparation-for-clustering" id="toc-data-preparation-for-clustering" class="nav-link" data-scroll-target="#data-preparation-for-clustering">Data Preparation for Clustering</a></li>
+  <li><a href="#checking-redundancy-and-association-between-variables" id="toc-checking-redundancy-and-association-between-variables" class="nav-link" data-scroll-target="#checking-redundancy-and-association-between-variables">Checking Redundancy and Association Between Variables</a></li>
+  <li><a href="#data-quality-checks-outliers-and-rare-categories" id="toc-data-quality-checks-outliers-and-rare-categories" class="nav-link" data-scroll-target="#data-quality-checks-outliers-and-rare-categories">Data Quality Checks: Outliers and Rare Categories</a></li>
+  <li><a href="#choosing-the-number-of-clusters" id="toc-choosing-the-number-of-clusters" class="nav-link" data-scroll-target="#choosing-the-number-of-clusters">Choosing the Number of Clusters</a></li>
+  <li><a href="#run-k-prototypes-clustering" id="toc-run-k-prototypes-clustering" class="nav-link" data-scroll-target="#run-k-prototypes-clustering">Run K-prototypes Clustering</a></li>
+  <li><a href="#external-validation-using-diabetes-status" id="toc-external-validation-using-diabetes-status" class="nav-link" data-scroll-target="#external-validation-using-diabetes-status">External Validation Using Diabetes Status</a></li>
+  <li><a href="#cluster-quality-silhouette-analysis" id="toc-cluster-quality-silhouette-analysis" class="nav-link" data-scroll-target="#cluster-quality-silhouette-analysis">Cluster Quality: Silhouette Analysis</a></li>
+  <li><a href="#key-clinical-insights" id="toc-key-clinical-insights" class="nav-link" data-scroll-target="#key-clinical-insights">Key Clinical Insights</a></li>
+  </ul>
+</li>
+  <li>
 <a href="#bonus" id="toc-bonus" class="nav-link" data-scroll-target="#bonus">Bonus</a>
   <ul class="collapse">
 <li><a href="#frequency-table-for-bmi-categories" id="toc-frequency-table-for-bmi-categories" class="nav-link" data-scroll-target="#frequency-table-for-bmi-categories">Frequency Table for BMI Categories</a></li>
@@ -309,7 +322,7 @@ window.Quarto = {
   <li><a href="#proportional-distribution-of-bmi-categories-by-year" id="toc-proportional-distribution-of-bmi-categories-by-year" class="nav-link" data-scroll-target="#proportional-distribution-of-bmi-categories-by-year">Proportional Distribution of BMI Categories by Year</a></li>
   </ul>
 </li>
-  </ul><div class="toc-actions"><ul><li><a href="https://github.com/rlad iesrome/Principles-of-data-Analysis-in-R/edit/main/02-exploring-diabetes-data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/rlad iesrome/Principles-of-data-Analysis-in-R/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+  </ul><div class="toc-actions"><ul><li><a href="https://github.com/rladiesrome/Principles-of-data-Analysis-in-R/edit/main/02-exploring-diabetes-data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/rladiesrome/Principles-of-data-Analysis-in-R/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./02-exploring-diabetes-data.html">3. Data Analytics</a></li><li class="breadcrumb-item"><a href="./02-exploring-diabetes-data.html">3.1 Exploring Diabetes Data</a></li></ol></nav><div class="quarto-title">
@@ -319,7 +332,7 @@ window.Quarto = {
     <div class="quarto-category">Tutorials</div>
     <div class="quarto-category">EDA</div>
     <div class="quarto-category">Diabetes</div>
-    <div class="quarto-category">R Ladies Rome</div>
+    <div class="quarto-category">Clustering</div>
   </div>
   </div>
 
@@ -388,28 +401,35 @@ window.Quarto = {
 <section id="install-required-packages" class="level3"><h3 class="anchored" data-anchor-id="install-required-packages">Install Required Packages</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"readxl"</span>, <span class="st">"janitor"</span>, <span class="st">"tidyverse"</span>, </span>
-<span>                   <span class="st">"scales"</span>, <span class="st">"crosstable"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span>                   <span class="st">"scales"</span>, <span class="st">"crosstable"</span>, </span>
+<span>                   <span class="st">"vcd"</span>, <span class="st">"DescTools"</span>,</span>
+<span>                   <span class="st">"cluster"</span>,<span class="st">"clustMixType"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section><section id="load-required-libraries" class="level3"><h3 class="anchored" data-anchor-id="load-required-libraries">Load Required Libraries</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://readxl.tidyverse.org">readxl</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sfirke/janitor">janitor</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://scales.r-lib.org">scales</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://danchaltiel.github.io/crosstable/">crosstable</a></span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Packages for Data Manipulation and Visualization</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://readxl.tidyverse.org">readxl</a></span><span class="op">)</span> <span class="co"># For read_excel()</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/sfirke/janitor">janitor</a></span><span class="op">)</span> <span class="co"># For clean_names()</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span> <span class="co"># For data manipulation and visualization</span></span>
+<span><span class="co"># tidyverse::tidyverse_packages()</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://scales.r-lib.org">scales</a></span><span class="op">)</span> <span class="co"># For scale_y_continuous(labels = scales::percent)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://danchaltiel.github.io/crosstable/">crosstable</a></span><span class="op">)</span> <span class="co"># For crosstable()</span></span>
+<span><span class="co"># Packages for Clustering</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">vcd</span><span class="op">)</span>    <span class="co"># For assocstats()</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://andrisignorell.github.io/DescTools/">DescTools</a></span><span class="op">)</span> <span class="co"># For CramerV()</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://svn.r-project.org/R-packages/trunk/cluster/">cluster</a></span><span class="op">)</span> <span class="co"># For data manipulation</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">clustMixType</span><span class="op">)</span> <span class="co"># For k-prototypes clustering</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section></section><section id="data-import" class="level2"><h2 class="anchored" data-anchor-id="data-import">Data Import</h2>
 <p>Data are stored in one Excel file with two sheets: one for 2015 and one for 2025. We read each sheet into R and clean the column names so they are consistent and easy to type.</p>
 <p>We use the <code>read_excel</code> function from the <code>readxl</code> package to read the data and the <code>clean_names</code> function from the <code>janitor</code> package to clean the column names.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="st">"data/diabetes_study_filled.xlsx"</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">path</span> <span class="op">&lt;-</span> <span class="st">"data/diabetes_study_filled_NEW.xlsx"</span></span>
 <span></span>
 <span><span class="va">d2015</span> <span class="op">&lt;-</span> <span class="fu">readxl</span><span class="fu">::</span><span class="fu"><a href="https://readxl.tidyverse.org/reference/read_excel.html">read_excel</a></span><span class="op">(</span><span class="va">path</span>, </span>
-<span>                            sheet <span class="op">=</span> <span class="st">"2015"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">janitor</span><span class="fu">::</span><span class="fu"><a href="https://sfirke.github.io/janitor/reference/clean_names.html">clean_names</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>                            sheet <span class="op">=</span> <span class="st">"2015"</span><span class="op">)</span> </span>
 <span><span class="va">d2025</span> <span class="op">&lt;-</span> <span class="fu">readxl</span><span class="fu">::</span><span class="fu"><a href="https://readxl.tidyverse.org/reference/read_excel.html">read_excel</a></span><span class="op">(</span><span class="va">path</span>, </span>
-<span>                            sheet <span class="op">=</span> <span class="st">"2025"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">janitor</span><span class="fu">::</span><span class="fu"><a href="https://sfirke.github.io/janitor/reference/clean_names.html">clean_names</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span>                            sheet <span class="op">=</span> <span class="st">"2025"</span><span class="op">)</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section><section id="pre-processing" class="level2"><h2 class="anchored" data-anchor-id="pre-processing">Pre-processing</h2>
 <p>The pre-processing phase is crucial for ensuring the quality and integrity of the data before conducting any analysis. Data are often messy and may contain <strong>inconsistencies</strong>, <strong>missing values</strong>, or <strong>irrelevant information</strong> that can affect the results of the analysis.</p>
@@ -418,8 +438,9 @@ window.Quarto = {
 <p>In particular, we use the <code>bind_rows</code> function from the <code>dplyr</code> package to stack the two datasets vertically, and the <code>mutate</code> function to create a new column called <code>year</code>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">data_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html">bind_rows</a></span><span class="op">(</span></span>
-<span>  <span class="va">d2015</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2015</span><span class="op">)</span>,</span>
-<span>  <span class="va">d2025</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2025</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span>  <span class="va">d2015</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2015</span><span class="op">)</span>,</span>
+<span>  <span class="va">d2025</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2025</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu">janitor</span><span class="fu">::</span><span class="fu"><a href="https://sfirke.github.io/janitor/reference/clean_names.html">clean_names</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section><section id="data-inspection" class="level3"><h3 class="anchored" data-anchor-id="data-inspection">Data Inspection</h3>
 <p>The first step is to check the initial structure of the data and identify any missing values. We can use the <code>head</code> function to view the first few rows of the dataset.</p>
@@ -486,33 +507,36 @@ $ gestational_diabetes &lt;chr&gt; "no", "no", "no", "no", "no", "no", "no", "no
 </div>
 </section><section id="creating-derived-variables" class="level3"><h3 class="anchored" data-anchor-id="creating-derived-variables">Creating Derived Variables</h3>
 <p>Data are usually not in the exact format needed for analysis. Therefore, we create new variables based on existing ones to facilitate the analysis. We are looking at making comparisons between two years to see how diabetes level changes along the time.</p>
-<p>In this case , we create three derived variables:</p>
+<p>In this case, we create three derived variables:</p>
 <ul>
-<li>Laboratory-defined diabetes (HbA1c ≥ 6.5)</li>
+<li>Laboratory-defined diabetes (<span class="math inline">\(HbA1c ≥ 6.5\)</span>)</li>
 <li>Total diabetes (self-report OR laboratory, excluding gestational diabetes)</li>
 <li>Age groups (set of age bands to support grouped summaries)</li>
 </ul>
 <p>This step involves using the <code>mutate</code> function from the <code>dplyr</code> package to create new columns based on conditions applied to existing columns. And we use the <code>if_else</code> and <code>case_when</code> functions to define the logic for these new variables.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">diabetes_data</span> <span class="op">&lt;-</span> <span class="va">data_raw</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df_diabetes</span> <span class="op">&lt;-</span> <span class="va">data_raw</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
-<span>    diabetes_lab <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">lab_hba1c</span> <span class="op">&gt;=</span> <span class="fl">6.5</span>, <span class="st">"yes"</span>, <span class="st">"no"</span>, missing <span class="op">=</span> <span class="cn">NA_character_</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Laboratory-defined diabetes</span></span>
+<span>    diabetes_lab <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">lab_hba1c</span> <span class="op">&gt;=</span> <span class="fl">6.5</span>, </span>
+<span>                           <span class="st">"yes"</span>, <span class="st">"no"</span>, </span>
+<span>                           missing <span class="op">=</span> <span class="cn">NA_character_</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Total diabetes (self-report OR laboratory, excluding gestational diabetes)</span></span>
 <span>    diabetes_total <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html">case_when</a></span><span class="op">(</span></span>
 <span>      <span class="va">gestational_diabetes</span> <span class="op">==</span> <span class="st">"yes"</span> <span class="op">~</span> <span class="st">"no"</span>,</span>
 <span>      <span class="va">diabetes_self_report</span> <span class="op">==</span> <span class="st">"yes"</span> <span class="op">|</span> <span class="va">diabetes_lab</span> <span class="op">==</span> <span class="st">"yes"</span> <span class="op">~</span> <span class="st">"yes"</span>,</span>
-<span>      <span class="cn">TRUE</span> <span class="op">~</span> <span class="st">"no"</span></span>
-<span>    <span class="op">)</span>,</span>
+<span>      <span class="cn">TRUE</span> <span class="op">~</span> <span class="st">"no"</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Age groups</span></span>
 <span>    age_group <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html">case_when</a></span><span class="op">(</span></span>
 <span>      <span class="va">age</span> <span class="op">&lt;</span> <span class="fl">50</span> <span class="op">~</span> <span class="st">"40–49"</span>,</span>
 <span>      <span class="va">age</span> <span class="op">&lt;</span> <span class="fl">60</span> <span class="op">~</span> <span class="st">"50–59"</span>,</span>
-<span>      <span class="cn">TRUE</span> <span class="op">~</span> <span class="st">"60+"</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span>      <span class="cn">TRUE</span> <span class="op">~</span> <span class="st">"60+"</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section></section><section id="exploratory-data-analysis-eda" class="level2"><h2 class="anchored" data-anchor-id="exploratory-data-analysis-eda">Exploratory data Analysis (EDA)</h2>
-<p>Exploratory Data Analysis (EDA) is a crucial step in understanding the underlying patterns, relationships, and distributions within a dataset. It involves using various statistical and graphical techniques to summarize and visualize the data. EDA helps to identify potential issues, outliers, and trends that may inform subsequent analyses or modelling efforts.</p>
+<p><code>Exploratory Data Analysis (EDA)</code> is a crucial step in understanding the underlying patterns, relationships, and distributions within a dataset. It involves using various statistical and graphical techniques to summarize and visualize the data. EDA helps to identify potential issues, outliers, and trends that may inform subsequent analyses or modelling efforts.</p>
 <section id="distribution-plot-for-hba1c-2015-only" class="level3"><h3 class="anchored" data-anchor-id="distribution-plot-for-hba1c-2015-only">Distribution plot for HbA1c (2015 only)</h3>
-<p>Let’s visualize the distribution of HbA1c levels for the year 2015 using a histogram combined with a density plot. This will help us understand the spread and central tendency of HbA1c values in that year.</p>
+<p>Let’s visualize the distribution of <code>HbA1c</code> levels for the year 2015 using a <code>histogram</code> combined with a <code>density plot</code>. This will help us understand the spread and central tendency of HbA1c values in that year.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">d2015</span>, </span>
 <span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">lab_hba1c</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -532,13 +556,15 @@ $ gestational_diabetes &lt;chr&gt; "no", "no", "no", "no", "no", "no", "no", "no
 </div>
 </div>
 </div>
+<p>We can see that the distribution of HbA1c levels in 2015 is right-skewed, with a peak around <span class="math inline">\(5-6\%\)</span>. This indicates that most individuals had HbA1c levels within the normal range, but there is a tail of higher values indicating some individuals with elevated HbA1c levels.</p>
 </section><section id="hba1c-distribution-in-both-years" class="level3"><h3 class="anchored" data-anchor-id="hba1c-distribution-in-both-years">HbA1c distribution in both years</h3>
-<p>To compare the distribution of <strong>HbA1c levels between 2015 and 2025</strong>, we can create a density plot that overlays the distributions for both years. This will allow us to visually assess any changes in HbA1c levels over time.</p>
+<p>To compare the distribution of <strong>HbA1c levels between 2015 and 2025</strong>, we can create a <code>density plot</code> that overlays the distributions for both years. This will allow us to visually assess any changes in HbA1c levels over time.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">diabetes_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df_diabetes</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">lab_hba1c</span>, </span>
 <span>           fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html">geom_density</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html">geom_density</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>               linewidth <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"HbA1c Distribution — 2015 vs 2025"</span>,</span>
 <span>       x <span class="op">=</span> <span class="st">"HbA1c (%)"</span>,</span>
 <span>       y <span class="op">=</span> <span class="st">"Density"</span>,</span>
@@ -551,12 +577,13 @@ $ gestational_diabetes &lt;chr&gt; "no", "no", "no", "no", "no", "no", "no", "no
 </div>
 </div>
 </section><section id="age-distribution-by-year" class="level3"><h3 class="anchored" data-anchor-id="age-distribution-by-year">Age distribution by year</h3>
-<p>To check the age distribution for both years, we can create overlapping histograms. This will help us visualize how the age distribution of the population has changed from 2015 to 2025.</p>
+<p>To check the age distribution for both years, we can create <code>overlapping histograms</code>. This will help us visualize how the age distribution of the population has changed from 2015 to 2025.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">diabetes_data</span>,</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_diabetes</span>,</span>
 <span>       mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">age</span>, </span>
 <span>                     fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html">geom_histogram</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"identity"</span>, </span>
+<span>                 color <span class="op">=</span> <span class="st">"grey80"</span>,</span>
 <span>                 alpha <span class="op">=</span> <span class="fl">0.5</span>, bins <span class="op">=</span> <span class="fl">30</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Age Distribution: 2015 vs 2025"</span>,</span>
 <span>       fill <span class="op">=</span> <span class="st">"Year"</span>,</span>
@@ -570,11 +597,14 @@ $ gestational_diabetes &lt;chr&gt; "no", "no", "no", "no", "no", "no", "no", "no
 </div>
 </div>
 </section><section id="age-boxplots" class="level3"><h3 class="anchored" data-anchor-id="age-boxplots">Age Boxplots</h3>
+<p>To further explore the age distribution by <code>year</code> and gender (<code>sex</code>), we can create <code>boxplots</code>. Boxplots provide a visual summary of the distribution, median, quartiles, and potential outliers for age across different years and genders.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">diabetes_data</span>,</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_diabetes</span>,</span>
 <span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">age</span>, </span>
 <span>           fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html">geom_boxplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html">geom_boxplot</a></span><span class="op">(</span>median.color <span class="op">=</span> <span class="st">"grey70"</span>,<span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"2015"</span> <span class="op">=</span> <span class="st">"lightblue"</span>, </span>
+<span>                             <span class="st">"2025"</span> <span class="op">=</span> <span class="st">"salmon"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">sex</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Age Distribution by Year"</span>,</span>
 <span>       x <span class="op">=</span> <span class="st">"Year"</span>,</span>
@@ -587,10 +617,11 @@ $ gestational_diabetes &lt;chr&gt; "no", "no", "no", "no", "no", "no", "no", "no
 </div>
 </div>
 </div>
+<p>This plot shows the age distribution for both years separately for males and females. We can observe any shifts in median age or variability between the two years and across genders. We do not have outliers in this dataset.</p>
 </section></section><section id="summary-statistics" class="level2"><h2 class="anchored" data-anchor-id="summary-statistics">Summary Statistics</h2>
 <p>Now that we have explored the data visually, we can compute some summary statistics to quantify key characteristics of the dataset, and compare them across the two years.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">diabetes_data</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df_diabetes</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span></span>
 <span>    n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    age_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">age</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
@@ -598,8 +629,8 @@ $ gestational_diabetes &lt;chr&gt; "no", "no", "no", "no", "no", "no", "no", "no
 <span>    hba1c_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">lab_hba1c</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>    hba1c_sd   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">lab_hba1c</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/t.html">t</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="co"># Round to 2 decimal places</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/t.html">t</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Transpose for better layout</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>             [,1]
 n          500.00
@@ -614,8 +645,8 @@ hba1c_sd     0.92</code></pre>
 <section id="comparisons-by-year" class="level3"><h3 class="anchored" data-anchor-id="comparisons-by-year">Comparisons by Year</h3>
 <p>To compare these statistics by year, we can use the <code>group_by</code> function to group the data by the <code>year</code> variable before summarising.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">diabetes_data</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df_diabetes</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span></span>
 <span>    n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    age_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">age</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
@@ -629,26 +660,13 @@ hba1c_sd     0.92</code></pre>
 2  2025   250     56.0       6.05</code></pre>
 </div>
 </div>
-<p>Or, with the <code><a href="https://rdrr.io/r/base/table.html">table()</a></code> function we can create a contingency table showing the distribution of diabetes status across the two years.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">table_diabetes_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">diabetes_data</span><span class="op">$</span><span class="va">year</span>,</span>
-<span>                             <span class="va">diabetes_data</span><span class="op">$</span><span class="va">diabetes_total</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">table_diabetes_year</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>      
-        no yes
-  2015 212  38
-  2025 188  62</code></pre>
-</div>
-</div>
 </section></section><section id="prevalence-calculation" class="level2"><h2 class="anchored" data-anchor-id="prevalence-calculation">Prevalence Calculation</h2>
 <p>To calculate the prevalence of diabetes for each year, we can use the <code>group_by</code> and <code>summarise</code> functions to compute the mean of the binary indicator for diabetes status.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">prev_diabetes</span> <span class="op">&lt;-</span> <span class="va">diabetes_data</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">diabetes_total</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">prev_diabetes</span> <span class="op">&lt;-</span> <span class="va">df_diabetes</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">diabetes_total</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>prop <span class="op">=</span> <span class="va">n</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">prev_diabetes</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -664,8 +682,8 @@ hba1c_sd     0.92</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">prev_summary</span> <span class="op">&lt;-</span> <span class="va">diabetes_data</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">prev_summary</span> <span class="op">&lt;-</span> <span class="va">df_diabetes</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span>prev_diabetes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">diabetes_total</span> <span class="op">==</span> <span class="st">"yes"</span>, </span>
 <span>                                 na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">prev_summary</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -680,8 +698,8 @@ hba1c_sd     0.92</code></pre>
 <section id="prevalence-table-with-confidence-intervals" class="level3"><h3 class="anchored" data-anchor-id="prevalence-table-with-confidence-intervals">Prevalence Table with Confidence Intervals</h3>
 <p>To calculate prevalence with confidence intervals, we can use the <code>prop.test</code> function within a custom summarise operation.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">prev_ci</span> <span class="op">&lt;-</span> <span class="va">diabetes_data</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">prev_ci</span> <span class="op">&lt;-</span> <span class="va">df_diabetes</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span></span>
 <span>    n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    cases <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">diabetes_total</span> <span class="op">==</span> <span class="st">"yes"</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
@@ -699,9 +717,9 @@ hba1c_sd     0.92</code></pre>
 </div>
 </div>
 </section><section id="visualize-diabetes-prevalence-by-year" class="level3"><h3 class="anchored" data-anchor-id="visualize-diabetes-prevalence-by-year">Visualize diabetes prevalence by year</h3>
-<p>To visualize diabetes prevalence by year, we can create a bar plot using the <code>ggplot2</code> package. This plot will show the proportion of individuals with diabetes for each year.</p>
+<p>To visualize diabetes prevalence by year, we can create a bar plot with the <code>errorbars</code> representing the confidence intervals. This plot will show the proportion of individuals with diabetes for each year.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">prev_ci</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">prev_ci</span>, </span>
 <span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span>, </span>
 <span>           y <span class="op">=</span> <span class="va">prev</span>, </span>
 <span>           fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -710,25 +728,32 @@ hba1c_sd     0.92</code></pre>
 <span>                    ymax <span class="op">=</span> <span class="va">ci_upper</span><span class="op">)</span>, </span>
 <span>                width <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://scales.r-lib.org/reference/percent_format.html">percent</a></span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"2015"</span> <span class="op">=</span> <span class="st">"lightblue"</span>, </span>
+<span>                               <span class="st">"2025"</span> <span class="op">=</span> <span class="st">"salmon"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Diabetes Prevalence by Year"</span>,</span>
 <span>       x <span class="op">=</span> <span class="st">"Year"</span>,</span>
 <span>       y <span class="op">=</span> <span class="st">"Prevalence (%)"</span>,</span>
 <span>       fill <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
+<p>This barplot shows the prevalence of diabetes for each year, along with the 95% confidence intervals. We can visually assess any changes in prevalence between 2015 and 2025.</p>
 </section><section id="interaction" class="level3"><h3 class="anchored" data-anchor-id="interaction">Interaction</h3>
-<p>To explore the interaction between gender, age, and diabetes status, we can create a faceted bar plot. This plot will show the distribution of diabetes status across different age groups, separated by gender.</p>
+<p>To explore the <code>interaction between gender, age, and diabetes status</code>, we can create a <code>faceted bar plot</code>. This plot will show the distribution of diabetes status across different age groups, separated by gender.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">diabetes_data</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_diabetes</span>, </span>
 <span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">age_group</span>, </span>
 <span>           fill <span class="op">=</span> <span class="va">diabetes_total</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"fill"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"fill"</span>,</span>
+<span>           color <span class="op">=</span> <span class="st">"white"</span>,</span>
+<span>           linewidth <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://scales.r-lib.org/reference/percent_format.html">percent</a></span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"yes"</span> <span class="op">=</span> <span class="st">"lightblue"</span>, </span>
+<span>                               <span class="st">"no"</span> <span class="op">=</span> <span class="st">"salmon"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Diabetes Status by Age Group and Gender"</span>,</span>
 <span>       x <span class="op">=</span> <span class="st">"Age Group"</span>,</span>
 <span>       y <span class="op">=</span> <span class="st">"Proportion"</span>,</span>
@@ -736,29 +761,32 @@ hba1c_sd     0.92</code></pre>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">sex</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>Interaction between gender, age and diabetes</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">diabetes_data</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_diabetes</span>, </span>
 <span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">diabetes_total</span>, y <span class="op">=</span> <span class="va">age</span>, </span>
 <span>           fill <span class="op">=</span> <span class="va">sex</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html">geom_boxplot</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.6</span>, </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html">geom_boxplot</a></span><span class="op">(</span>median.color <span class="op">=</span> <span class="st">"gray40"</span>,</span>
 <span>               outlier.color <span class="op">=</span> <span class="st">"gray40"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_fill_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"men"</span> <span class="op">=</span> <span class="st">"lightblue"</span>,</span>
+<span>                               <span class="st">"woman"</span> <span class="op">=</span> <span class="st">"salmon"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Age Distribution by Diabetes Status and Gender"</span>,</span>
 <span>       x <span class="op">=</span> <span class="st">"Diabetes"</span>,</span>
 <span>       y <span class="op">=</span> <span class="st">"Age"</span>,</span>
 <span>       fill <span class="op">=</span> <span class="st">"Gender"</span><span class="op">)</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
+<p>Here, we can observe how the proportion of individuals with diabetes varies across age groups for both men and women. Additionally, the boxplot shows the age distribution for individuals with and without diabetes, separated by gender.</p>
 </section></section><section id="qualitative-statistical-inference" class="level2"><h2 class="anchored" data-anchor-id="qualitative-statistical-inference">Qualitative Statistical Inference</h2>
 <p>To answer our research questions regarding diabetes prevalence, we will use the <strong>Chi-Square Test of Independence</strong>. This test is appropriate for categorical data and helps us determine whether there is a significant association between two categorical variables.</p>
 <blockquote class="blockquote">
@@ -766,8 +794,8 @@ hba1c_sd     0.92</code></pre>
 </blockquote>
 <section id="chi-square-test-for-year-and-diabetes-status" class="level3"><h3 class="anchored" data-anchor-id="chi-square-test-for-year-and-diabetes-status">Chi-square Test for Year and Diabetes Status</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">table_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">diabetes_data</span><span class="op">$</span><span class="va">year</span>, </span>
-<span>                    <span class="va">diabetes_data</span><span class="op">$</span><span class="va">diabetes_total</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">table_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">df_diabetes</span><span class="op">$</span><span class="va">year</span>, </span>
+<span>                    <span class="va">df_diabetes</span><span class="op">$</span><span class="va">diabetes_total</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">table_year</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -778,7 +806,7 @@ hba1c_sd     0.92</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">chi_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://sfirke.github.io/janitor/reference/chisq.test.html">chisq.test</a></span><span class="op">(</span><span class="va">table_year</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">chi_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://sfirke.github.io/janitor/reference/chisq.test.html">chisq.test</a></span><span class="op">(</span><span class="va">table_year</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">chi_year</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -791,7 +819,7 @@ X-squared = 6.6125, df = 1, p-value = 0.01013</code></pre>
 </div>
 <p>The p-value is below 0.05, so we reject the null hypothesis and conclude that prevalence differs between 2015 and 2025 in this dataset.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">chi_year</span><span class="op">$</span><span class="va">expected</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">chi_year</span><span class="op">$</span><span class="va">expected</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>      
         no yes
@@ -800,7 +828,7 @@ X-squared = 6.6125, df = 1, p-value = 0.01013</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Standardized Residuals</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Standardized Residuals</span></span>
 <span><span class="va">res_year</span> <span class="op">&lt;-</span> <span class="va">chi_year</span><span class="op">$</span><span class="va">stdres</span></span>
 <span><span class="va">res_year</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
@@ -815,25 +843,25 @@ X-squared = 6.6125, df = 1, p-value = 0.01013</code></pre>
 </blockquote>
 </section><section id="chi-square-test-for-country-and-diabetes-status-in-2025" class="level3"><h3 class="anchored" data-anchor-id="chi-square-test-for-country-and-diabetes-status-in-2025">Chi-square Test for Country and Diabetes Status in 2025</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">diabetes_data_2025</span> <span class="op">&lt;-</span> <span class="va">diabetes_data</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">year</span> <span class="op">==</span> <span class="fl">2025</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df_diabetes_2025</span> <span class="op">&lt;-</span> <span class="va">df_diabetes</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">year</span> <span class="op">==</span> <span class="fl">2025</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Contingency table for countries and diabetes</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tab_2025</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">diabetes_data_2025</span><span class="op">$</span><span class="va">country</span>,</span>
-<span>                  <span class="va">diabetes_data_2025</span><span class="op">$</span><span class="va">diabetes_total</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">tab_2025</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">df_diabetes_2025</span><span class="op">$</span><span class="va">country</span>,</span>
+<span>                  <span class="va">df_diabetes_2025</span><span class="op">$</span><span class="va">diabetes_total</span><span class="op">)</span></span>
 <span><span class="va">tab_2025</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>        
-         no yes
-  Africa 27   6
-  Brazil 42  25
-  China  39  11
-  Rome   40  10
-  USA    40  10</code></pre>
+<pre><code>              
+               no yes
+  Brazil       42  25
+  China        39  11
+  Italy        40  10
+  South Africa 27   6
+  USA          40  10</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">chi_2025</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://sfirke.github.io/janitor/reference/chisq.test.html">chisq.test</a></span><span class="op">(</span><span class="va">tab_2025</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">chi_2025</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://sfirke.github.io/janitor/reference/chisq.test.html">chisq.test</a></span><span class="op">(</span><span class="va">tab_2025</span><span class="op">)</span></span>
 <span><span class="va">chi_2025</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -845,39 +873,39 @@ X-squared = 7.8461, df = 4, p-value = 0.09738</code></pre>
 </div>
 <p>The p-value is greater than 0.05. Therefore, we fail to reject the null hypothesis and conclude that there is no statistically significant difference in diabetes prevalence between countries in 2025.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb44"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">chi_2025</span><span class="op">$</span><span class="va">expected</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">chi_2025</span><span class="op">$</span><span class="va">expected</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>        
-             no    yes
-  Africa 24.816  8.184
-  Brazil 50.384 16.616
-  China  37.600 12.400
-  Rome   37.600 12.400
-  USA    37.600 12.400</code></pre>
+<pre><code>              
+                   no    yes
+  Brazil       50.384 16.616
+  China        37.600 12.400
+  Italy        37.600 12.400
+  South Africa 24.816  8.184
+  USA          37.600 12.400</code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb46"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Standardized Residuals</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb44"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Standardized Residuals</span></span>
 <span><span class="va">residuals</span> <span class="op">&lt;-</span> <span class="va">chi_2025</span><span class="op">$</span><span class="va">stdres</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">residuals</span>, <span class="fl">2</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>        
-            no   yes
-  Africa  0.94 -0.94
-  Brazil -2.77  2.77
-  China   0.51 -0.51
-  Rome    0.88 -0.88
-  USA     0.88 -0.88</code></pre>
+<pre><code>              
+                  no   yes
+  Brazil       -2.77  2.77
+  China         0.51 -0.51
+  Italy         0.88 -0.88
+  South Africa  0.94 -0.94
+  USA           0.88 -0.88</code></pre>
 </div>
 </div>
-<p>Identify where the greatest contribution lies</p>
+<p>Identify where the greatest contribution lies:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb48"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/mosaicplot.html">mosaicplot</a></span><span class="op">(</span><span class="va">tab_2025</span>,</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb46"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/mosaicplot.html">mosaicplot</a></span><span class="op">(</span><span class="va">tab_2025</span>,</span>
 <span>           main <span class="op">=</span> <span class="st">"Mosaic Plot — Diabetes by Country (2025)"</span>,</span>
 <span>           color <span class="op">=</span> <span class="cn">TRUE</span>, las <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -896,113 +924,561 @@ X-squared = 7.8461, df = 4, p-value = 0.09738</code></pre>
 <p>Although some countries show larger deviations from expected counts, these differences are not strong enough, overall, to conclude that prevalence differs significantly across countries.</p>
 </div>
 </div>
+</section></section><section id="k-prototypes-clustering" class="level2"><h2 class="anchored" data-anchor-id="k-prototypes-clustering">K-prototypes Clustering</h2>
+<p>In this final analytical step, we explore whether individuals in the 2025 dataset can be grouped into distinct profiles based on a combination of clinical and demographic characteristics. Rather than focusing on hypothesis testing, this section introduces unsupervised learning as an exploratory tool to uncover structure in the data.</p>
+<p>Clustering is particularly useful in public health settings when the goal is to:</p>
+<pre><code>- identify subgroups with similar risk profiles,
+- explore heterogeneity within a population,
+- generate hypotheses for targeted interventions.</code></pre>
+<p>Because our dataset contains both numeric and categorical variables, we use the <code>k-prototypes algorithm</code>, which is specifically designed for mixed-type data.</p>
+<blockquote class="blockquote">
+<p>Why k-prototypes?</p>
+</blockquote>
+<p>Traditional clustering methods such as <code>k-means</code> only work with numeric variables, while <code>k-modes</code> are limited to categorical data. The <code>k-prototypes</code> algorithm combines both approaches:</p>
+<pre><code>- Euclidean distance is used for numeric variables,
+- matching dissimilarity is used for categorical variables,
+- a tuning parameter ($\lambda$) balances the contribution of each type.</code></pre>
+<p>This makes k-prototypes well suited for health datasets that mix laboratory values (e.g.&nbsp;<code>HbA1c</code>) with demographic or clinical categories (e.g.&nbsp;<code>sex</code>, <code>BMI group</code>, <code>age band</code>).</p>
+<section id="data-preparation-for-clustering" class="level3"><h3 class="anchored" data-anchor-id="data-preparation-for-clustering">Data Preparation for Clustering</h3>
+<p>We restrict the clustering analysis to observations from 2025, as the aim is to characterise the most recent population snapshot rather than temporal change.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">df_diabetes_2025</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [250 × 12] (S3: tbl_df/tbl/data.frame)
+ $ year                : num [1:250] 2025 2025 2025 2025 2025 ...
+ $ country             : chr [1:250] "Brazil" "Brazil" "Brazil" "Brazil" ...
+ $ age                 : num [1:250] 44 83 45 48 48 47 55 66 57 66 ...
+ $ sex                 : chr [1:250] "woman" "men" "woman" "men" ...
+ $ bmi_cat             : chr [1:250] "Normal weight" "Overweight" "Obesity" "Normal weight" ...
+ $ sdi                 : chr [1:250] "Intermediate" "Intermediate" "Intermediate" "Intermediate" ...
+ $ lab_hba1c           : num [1:250] 6 6.1 5.8 5.9 5.3 6.3 8.8 5.4 5.3 6.4 ...
+ $ diabetes_self_report: chr [1:250] "no" "no" "no" "yes" ...
+ $ gestational_diabetes: chr [1:250] "no" "no" "no" "no" ...
+ $ diabetes_lab        : chr [1:250] "no" "no" "no" "no" ...
+ $ diabetes_total      : chr [1:250] "no" "no" "no" "yes" ...
+ $ age_group           : chr [1:250] "40–49" "60+" "40–49" "40–49" ...</code></pre>
+</div>
+</div>
+<p>Before clustering, variables must be correctly typed. Numeric variables should remain numeric, while categorical variables must be encoded as factors.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb51"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cluster_data_2025</span> <span class="op">&lt;-</span> <span class="va">df_diabetes_2025</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">year</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/where.html">where</a></span><span class="op">(</span><span class="va">is.character</span><span class="op">)</span>, <span class="va">as.factor</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/str.html">str</a></span><span class="op">(</span><span class="va">cluster_data_2025</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [250 × 11] (S3: tbl_df/tbl/data.frame)
+ $ country             : Factor w/ 5 levels "Brazil","China",..: 1 1 1 1 1 1 1 1 1 1 ...
+ $ age                 : num [1:250] 44 83 45 48 48 47 55 66 57 66 ...
+ $ sex                 : Factor w/ 2 levels "men","woman": 2 1 2 1 1 2 2 1 1 2 ...
+ $ bmi_cat             : Factor w/ 4 levels "Normal weight",..: 1 3 2 1 2 2 2 3 2 2 ...
+ $ sdi                 : Factor w/ 3 levels "High","Intermediate",..: 2 2 2 2 2 2 2 2 2 2 ...
+ $ lab_hba1c           : num [1:250] 6 6.1 5.8 5.9 5.3 6.3 8.8 5.4 5.3 6.4 ...
+ $ diabetes_self_report: Factor w/ 2 levels "no","yes": 1 1 1 2 1 2 1 1 1 2 ...
+ $ gestational_diabetes: Factor w/ 2 levels "no","yes": 1 1 1 1 1 1 1 1 1 1 ...
+ $ diabetes_lab        : Factor w/ 2 levels "no","yes": 1 1 1 1 1 1 2 1 1 1 ...
+ $ diabetes_total      : Factor w/ 2 levels "no","yes": 1 1 1 2 1 2 2 1 1 2 ...
+ $ age_group           : Factor w/ 3 levels "40–49","50–59",..: 1 3 1 1 1 1 2 3 2 3 ...</code></pre>
+</div>
+</div>
+<p>At this stage, the dataset contains a mixture of numeric and categorical features suitable for k-prototypes clustering.</p>
+</section><section id="checking-redundancy-and-association-between-variables" class="level3"><h3 class="anchored" data-anchor-id="checking-redundancy-and-association-between-variables">Checking Redundancy and Association Between Variables</h3>
+<p>Clustering can be distorted if highly redundant variables are included. We therefore assess association within numeric variables and dependence among categorical variables.</p>
+<section id="numeric-correlation-pearson" class="level4"><h4 class="anchored" data-anchor-id="numeric-correlation-pearson">Numeric Correlation (Pearson)</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb53"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cluster_data_2025</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select_all.html">select_if</a></span><span class="op">(</span><span class="va">is.numeric</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                  age   lab_hba1c
+age       1.000000000 0.008397291
+lab_hba1c 0.008397291 1.000000000</code></pre>
+</div>
+</div>
+<p><code>Age</code> and <code>HbA1c</code> show little correlation, so both can be retained. However, <code>age_group</code> is derived directly from age, so age is removed later to avoid duplicating the same information. So we will drop <code>age</code> from the clustering dataset.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb55"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">features_num</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="co">#"age", </span></span>
+<span>                  <span class="st">"lab_hba1c"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="categorical-association-cramérs-v" class="level4"><h4 class="anchored" data-anchor-id="categorical-association-cramérs-v">Categorical Association (Cramér’s V)</h4>
+<p>For categorical variables, we use <code>Cramér’s V</code>, a normalized measure derived from the <code>chi-square</code> statistic:</p>
+<p><span id="eq-cramers_v"><span class="math display">\[
+V = \sqrt{\frac{\chi^2 / n}{\min(k - 1, r - 1)}}
+\tag{1}\]</span></span></p>
+<p>Where:<br>
+- (<span class="math inline">\(\chi^2\)</span>) is the Chi-square statistic<br>
+- (<span class="math inline">\(n\)</span>) is the total number of observations<br>
+- (<span class="math inline">\(k\)</span>) is the number of categories in one variable<br>
+- (<span class="math inline">\(r\)</span>) is the number of categories in the other variable</p>
+<p>Cramer V is a measure of association between two nominal categorical variables. It ranges from 0 (no association) to 1 (perfect association). It is based on the Chi-square statistic and is useful for understanding the strength of association between categorical variables.</p>
+<p>The inventor of Cramér’s V, Harald Cramér, did not specify strict cut-offs for interpreting the values. However, in practice, researchers often use the following guidelines to interpret the strength of association:</p>
+<ul>
+<li>0 to 0.1: Negligible association</li>
+<li>0.1 to 0.3: Weak association</li>
+<li>0.3 to 0.5: Moderate association</li>
+<li>0.5 to 1.0: Strong association</li>
+</ul>
+<p>In this case, we will identify pairs of categorical variables with <strong>Cramér’s V less than or equal to 0.5</strong>, indicating weak to moderate associations.</p>
+<p>We first examine the relationship between <code>country</code> and <code>sdi</code>, which are conceptually related using the <code><a href="https://rdrr.io/pkg/vcd/man/assocstats.html">assocstats()</a></code> function from the <code>vcd</code> package:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb56"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">vcd</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/vcd/man/assocstats.html">assocstats</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">country</span>, <span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">sdi</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">cramer</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8998341</code></pre>
+</div>
+</div>
+<p>Or, we can even use the <code><a href="https://andrisignorell.github.io/DescTools/reference/CramerV.html">CramerV()</a></code> function from the <code>DescTools</code> package:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb58"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu">DescTools</span><span class="fu">::</span><span class="fu"><a href="https://andrisignorell.github.io/DescTools/reference/CramerV.html">CramerV</a></span><span class="op">(</span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">country</span>, <span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">sdi</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8998341</code></pre>
+</div>
+</div>
+<p>Both packages show a value of 0.9, indicating a high association between <code>country</code> and <code>SDI.</code> The high association suggests that including both variables may overweight the same socioeconomic information. However, association with other categorical variables is weaker, so this decision is not automatic and requires judgement.</p>
+<p><strong>Test all pairs of categorical features</strong></p>
+<p>To examine this systematically, we compute Cramér’s V for all pairs of categorical variables setting up a function to compute Cramér’s V for any two categorical variables:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb60"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cramers_v</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span> <span class="fu"><a href="https://andrisignorell.github.io/DescTools/reference/CramerV.html">CramerV</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Extract the names of all categorical features:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb61"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cluster_data_2025</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/where.html">where</a></span><span class="op">(</span><span class="va">is.factor</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "country"              "sex"                  "bmi_cat"             
+[4] "sdi"                  "diabetes_self_report" "gestational_diabetes"
+[7] "diabetes_lab"         "diabetes_total"       "age_group"           </code></pre>
+</div>
+</div>
+<p>We focus on a subset of categorical features for clarity:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb63"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">features_cat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"sex"</span>, </span>
+<span>                  <span class="st">"bmi_cat"</span>, </span>
+<span>                  <span class="co">#"country", </span></span>
+<span>                  <span class="co">#"sdi",</span></span>
+<span>                  <span class="st">"age_group"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Then we use the <code>expand_grid</code> function to create all possible pairs of categorical features, compute Cramér’s V for each pair, and filter for weak to moderate associations (Cramér’s V &lt;= 0.5):</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb64"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html">expand_grid</a></span><span class="op">(</span>feature1 <span class="op">=</span> <span class="va">features_cat</span>,</span>
+<span>            feature2 <span class="op">=</span> <span class="va">features_cat</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">feature1</span> <span class="op">&lt;</span> <span class="va">feature2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="co"># keep unique pairs only</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rowwise.html">rowwise</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>cramers_v <span class="op">=</span> <span class="fu">cramers_v</span><span class="op">(</span></span>
+<span>    <span class="va">cluster_data_2025</span><span class="op">[[</span><span class="va">feature1</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>    <span class="va">cluster_data_2025</span><span class="op">[[</span><span class="va">feature2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="co"># Filter for Cramér's V &lt;= 0.5 to identify weak to moderate associations</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">cramers_v</span> <span class="op">&lt;=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">cramers_v</span><span class="op">)</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">cramers_df</span></span>
+<span></span>
+<span><span class="va">cramers_df</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 3
+# Rowwise: 
+  feature1  feature2 cramers_v
+  &lt;chr&gt;     &lt;chr&gt;        &lt;dbl&gt;
+1 bmi_cat   sex         0.124 
+2 age_group sex         0.0698
+3 age_group bmi_cat     0.0578</code></pre>
+</div>
+</div>
+<p>This confirms that the retained categorical variables are not strongly redundant.</p>
+</section></section><section id="data-quality-checks-outliers-and-rare-categories" class="level3"><h3 class="anchored" data-anchor-id="data-quality-checks-outliers-and-rare-categories">Data Quality Checks: Outliers and Rare Categories</h3>
+<p>Before clustering, we check:</p>
+<pre><code>- outliers in numeric variables,
+- imbalanced categories in categorical variables.</code></pre>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb67"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cluster_data_2025</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">lab_hba1c</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html">geom_boxplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">lab_hba1c</span><span class="op">)</span><span class="op">)</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-42-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can see the presence of outliers in <code>lab_hba1c</code> variable. To handle these outliers , we can perform a technique called <strong>winsorization</strong>, which involves capping extreme values to reduce their impact on the analysis. In this case, we will cap the values at the 1st and 99th percentiles.</p>
+<p>The extreme values in <code>lab_hba1c</code> can disproportionately influence the clustering results.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb68"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">lab_hba1c</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  4.800   5.400   5.800   6.052   6.300   8.900 </code></pre>
+</div>
+</div>
+<p>The maximum value of <code>lab_hba1c</code> before winsorization is 8.9.</p>
+<p>Then we calculate the upper whisker value using the interquartile range (IQR) method.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb70"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">Q1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">lab_hba1c</span>, <span class="fl">0.25</span><span class="op">)</span></span>
+<span><span class="va">Q3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">lab_hba1c</span>, <span class="fl">0.75</span><span class="op">)</span></span>
+<span><span class="va">IQR_val</span> <span class="op">&lt;-</span> <span class="va">Q3</span> <span class="op">-</span> <span class="va">Q1</span></span>
+<span><span class="va">upper_whisker</span> <span class="op">&lt;-</span> <span class="va">Q3</span> <span class="op">+</span> <span class="fl">1.5</span> <span class="op">*</span> <span class="va">IQR_val</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>In summary, winsorizing the <code>lab_hba1c</code> variable helps to mitigate the influence of extreme outliers on the clustering results.</p>
+<section id="winsorization-of-lab_hba1c" class="level4"><h4 class="anchored" data-anchor-id="winsorization-of-lab_hba1c">Winsorization of lab_hba1c</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb71"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Save the original values</span></span>
+<span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">lab_hba1c_original</span> <span class="op">&lt;-</span> <span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">lab_hba1c</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We use <code><a href="https://rdrr.io/r/base/Extremes.html">pmin()</a></code> function to force the <code>lab_hba1c</code> outliers to equal the <code>upper whisker value</code>, it selects the minimum out of: the existing lab_hba1c value and the upper whisker value.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb72"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">lab_hba1c</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">pmin</a></span><span class="op">(</span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">lab_hba1c</span>, <span class="va">upper_whisker</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>After winsorization - where did the outliers go?</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb73"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/boxplot.html">boxplot</a></span><span class="op">(</span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">lab_hba1c</span>, </span>
+<span>        main <span class="op">=</span> <span class="st">"lab_hba1c – After Winsorization"</span>,</span>
+<span>        horizontal <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-47-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="unbalanced-categorical-features" class="level4"><h4 class="anchored" data-anchor-id="unbalanced-categorical-features">Unbalanced categorical features</h4>
+<p>We check the distribution of categories in each categorical variable to ensure there are no extremely rare categories that could distort clustering.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb74"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cat_balance</span> <span class="op">&lt;-</span> <span class="va">cluster_data_2025</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select_all.html">select_if</a></span><span class="op">(</span><span class="va">is.factor</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>               names_to <span class="op">=</span> <span class="st">"variable"</span>,</span>
+<span>               values_to <span class="op">=</span> <span class="st">"category"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">variable</span>, <span class="va">category</span>, name <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">variable</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>pct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">100</span> <span class="op">*</span> <span class="va">n</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>         is_rare <span class="op">=</span> <span class="op">(</span><span class="va">n</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0.05</span> <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">variable</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html">desc</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cat_balance</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 25 × 5
+   variable  category          n   pct is_rare
+   &lt;chr&gt;     &lt;fct&gt;         &lt;int&gt; &lt;dbl&gt; &lt;lgl&gt;  
+ 1 age_group 40–49            88  35.2 FALSE  
+ 2 age_group 50–59            87  34.8 FALSE  
+ 3 age_group 60+              75  30   FALSE  
+ 4 bmi_cat   Normal weight   102  40.8 FALSE  
+ 5 bmi_cat   Overweight       78  31.2 FALSE  
+ 6 bmi_cat   Obesity          46  18.4 FALSE  
+ 7 bmi_cat   Underweight      24   9.6 FALSE  
+ 8 country   Brazil           67  26.8 FALSE  
+ 9 country   China            50  20   FALSE  
+10 country   Italy            50  20   FALSE  
+# ℹ 15 more rows</code></pre>
+</div>
+</div>
+<p>No categories are extremely rare (i.e., less than 5% of total), so we can retain all categorical variables for clustering.</p>
+</section><section id="scaling-numeric-variables-and-final-variable-selection" class="level4"><h4 class="anchored" data-anchor-id="scaling-numeric-variables-and-final-variable-selection">Scaling Numeric Variables and Final Variable Selection</h4>
+<p>Why scaling? Scaling numeric variables ensures that they contribute equally to the distance calculations used in clustering. Without scaling, variables with larger ranges can dominate the distance metric, leading to biased clustering results.</p>
+<p>We then retain the final set of variables for clustering and standardise the numeric input.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb76"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cluster_data_2025</span> <span class="op">&lt;-</span> <span class="va">cluster_data_2025</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">lab_hba1c</span>,</span>
+<span>         <span class="va">sex</span>,</span>
+<span>         <span class="va">age_group</span>,</span>
+<span>         <span class="va">bmi_cat</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="co"># here is where scaling happens</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>lab_hba1c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/scale.html">scale</a></span><span class="op">(</span><span class="va">lab_hba1c</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section></section><section id="choosing-the-number-of-clusters" class="level3"><h3 class="anchored" data-anchor-id="choosing-the-number-of-clusters">Choosing the Number of Clusters</h3>
+<p>We use the elbow method, examining how within-cluster variation decreases as the number of clusters increases. What we do here is <code>run the k-prototypes algorithm</code> for a <code>range of cluster numbers (k = 2 to 10)</code> and record the total <code>within-cluster sum of squares (WSS)</code> for each k. We use the <code>map_dbl</code> function from the <code>purrr</code> package to map over the range of k values and store the WSS results. And the <code>kproto</code> function from the <code>clustMixType</code> package to perform k-prototypes clustering on the prepared dataset for 2025.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb77"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">kproto_wss_2025</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html">map_dbl</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">10</span>, <span class="kw">function</span><span class="op">(</span><span class="va">k</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  </span>
+<span>  <span class="va">kpres</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/clustMixType/man/kproto.html">kproto</a></span><span class="op">(</span><span class="va">cluster_data_2025</span>,</span>
+<span>                  <span class="va">k</span>, </span>
+<span>                  verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> </span>
+<span>    </span>
+<span>  <span class="va">kpres</span><span class="op">$</span><span class="va">tot.withinss</span></span>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>And plot the WSS values to identify the “elbow” point where adding more clusters yields diminishing returns in reducing WSS.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb78"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">10</span>, <span class="va">kproto_wss_2025</span>, type <span class="op">=</span> <span class="st">"b"</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"Number of clusters (k)"</span>,</span>
+<span>     ylab <span class="op">=</span> <span class="st">"Total within-cluster sum of squares"</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"Elbow Method (2025)"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-51-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Based on the elbow plot, we choose <code>k = 5</code> as the optimal number of clusters.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb79"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">optimal_k</span> <span class="op">&lt;-</span> <span class="fl">5</span>  <span class="co"># chosen from elbow</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section><section id="run-k-prototypes-clustering" class="level3"><h3 class="anchored" data-anchor-id="run-k-prototypes-clustering">Run K-prototypes Clustering</h3>
+<p>We use the <code>kproto</code> function again, but this time specifying the <code>optimal number of clusters (k = 5)</code> determined from the elbow method. We set a random seed for reproducibility, and configure the algorithm to run with 25 random starts and a maximum of 25 iterations per start to ensure convergence.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb80"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123456789</span><span class="op">)</span></span>
+<span><span class="va">kp_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/clustMixType/man/kproto.html">kproto</a></span><span class="op">(</span><span class="va">cluster_data_2025</span>, </span>
+<span>                   k <span class="op">=</span> <span class="va">optimal_k</span>,</span>
+<span>                   nstart <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>                   iter.max <span class="op">=</span> <span class="fl">25</span>,</span>
+<span>                   lambda <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>                   verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Add a cluster number (1 to 5) to each datapoint in the dataset:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb81"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">cluster</span> <span class="op">&lt;-</span> <span class="va">kp_model</span><span class="op">$</span><span class="va">cluster</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="interpreting-the-clusters" class="level4"><h4 class="anchored" data-anchor-id="interpreting-the-clusters">Interpreting the Clusters</h4>
+<p>Key diagnostic outputs help assess clustering quality and interpretability:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb82"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">kp_model</span><span class="op">$</span><span class="va">size</span> <span class="co"># Number of points in each cluster</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>clusters
+ 1  2  3  4  5 
+48 50 58 42 52 </code></pre>
+</div>
+</div>
+<p>Lambda balances numerical (Euclidean) vs categorical (matching) distance:</p>
+<p><span id="eq-lambda"><span class="math display">\[
+\lambda =\sum{\frac{\text{(std_dev of numerical features)}}{\text{(numerical features)}}}
+\tag{2}\]</span></span></p>
+<p>Calculate lambda manually to verify:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb84"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">kp_model</span><span class="op">$</span><span class="va">lambda</span> <span class="co"># Lambda value used</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.614542</code></pre>
+</div>
+</div>
+<p>The <code>withinss</code> values tell us how compact each cluster is. Lower is better, it means the patients in that cluster are more similar to each other.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb86"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">kp_model</span><span class="op">$</span><span class="va">withinss</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]  72.60207  58.85312  94.89224 110.92214  85.94492</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb88"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Compare cluster compactness</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/barplot.html">barplot</a></span><span class="op">(</span><span class="va">kp_model</span><span class="op">$</span><span class="va">withinss</span>, </span>
+<span>        names.arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"Cluster"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span>,</span>
+<span>        ylab <span class="op">=</span> <span class="st">"Within-cluster SS"</span>,</span>
+<span>        main <span class="op">=</span> <span class="st">"Cluster Compactness (lower = more compact)"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-58-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The total <code>within-cluster sum of squares</code> represents the overall compactness. When we did the elbow plot, we were looking at how this total changes as we add more clusters. We want tight clusters without over-fragmenting our data.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb89"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">kp_model</span><span class="op">$</span><span class="va">tot.withinss</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 423.2145</code></pre>
+</div>
+</div>
+<p>The cluster centres for categorical variables represent modal categories, while numeric centres reflect mean values.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb91"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">kp_model</span><span class="op">$</span><span class="va">centers</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    lab_hba1c   sex age_group       bmi_cat
+1 -0.71955321   men     50–59    Overweight
+2 -0.28653701 woman     50–59 Normal weight
+3 -0.51599890   men       60+ Normal weight
+4  1.84526774   men     40–49 Normal weight
+5  0.02484799 woman     40–49    Overweight</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb93"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cluster_data_2025</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">cluster</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span></span>
+<span>    n <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html">n</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    hba1c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">lab_hba1c</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">sex</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    bmi_cat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">bmi_cat</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html">which.max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">age_group</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 6
+  cluster     n hba1c sex   bmi_cat       age  
+    &lt;int&gt; &lt;int&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;         &lt;chr&gt;
+1       1    48  -0.7 men   Overweight    50–59
+2       2    50  -0.3 woman Normal weight 50–59
+3       3    58  -0.5 men   Normal weight 60+  
+4       4    42   1.8 men   Normal weight 40–49
+5       5    52   0   woman Overweight    40–49</code></pre>
+</div>
+</div>
+</section></section><section id="external-validation-using-diabetes-status" class="level3"><h3 class="anchored" data-anchor-id="external-validation-using-diabetes-status">External Validation Using Diabetes Status</h3>
+<p>Although clustering is unsupervised, we can validate the result externally by checking whether clusters align with known diabetes status.</p>
+<p>Add diabetes status back to cluster data:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb95"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">diabetes</span> <span class="op">&lt;-</span> <span class="va">df_diabetes_2025</span><span class="op">$</span><span class="va">diabetes_total</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb96"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://sfirke.github.io/janitor/reference/chisq.test.html">chisq.test</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">cluster</span>, <span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">diabetes</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Pearson's Chi-squared test
+
+data:  table(cluster_data_2025$cluster, cluster_data_2025$diabetes)
+X-squared = 138.5, df = 4, p-value &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb98"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/vcd/man/assocstats.html">assocstats</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">cluster</span>, <span class="va">cluster_data_2025</span><span class="op">$</span><span class="va">diabetes</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                    X^2 df P(&gt; X^2)
+Likelihood Ratio 130.89  4        0
+Pearson          138.50  4        0
+
+Phi-Coefficient   : NA 
+Contingency Coeff.: 0.597 
+Cramer's V        : 0.744 </code></pre>
+</div>
+</div>
+<p>Practical implication for your clustering workflow:</p>
+<p>A Cramér’s V of 0.7443093 strongly suggests these two categorical variables carry overlapping information. If both are included in clustering, the algorithm may effectively <em>double count</em> the same underlying structure, increasing the weight of that dimension in cluster formation.</p>
+</section><section id="cluster-quality-silhouette-analysis" class="level3"><h3 class="anchored" data-anchor-id="cluster-quality-silhouette-analysis">Cluster Quality: Silhouette Analysis</h3>
+<p>Silhouette analysis measures how similar an object is to its own cluster compared to other clusters. The silhouette value ranges from -1 to 1, where a value close to 1 indicates that the object is well clustered, a value of 0 indicates that the object is on or very close to the decision boundary between two neighboring clusters, and negative values indicate that the object may have been assigned to the wrong cluster.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb100"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">dist_matrix</span> <span class="op">&lt;-</span> <span class="va">cluster_data_2025</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">cluster</span>, <span class="op">-</span><span class="va">diabetes</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu">cluster</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/cluster/man/daisy.html">daisy</a></span><span class="op">(</span>metric <span class="op">=</span> <span class="st">"gower"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb101"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">sil</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/cluster/man/silhouette.html">silhouette</a></span><span class="op">(</span><span class="va">kp_model</span><span class="op">$</span><span class="va">cluster</span>, <span class="va">dist_matrix</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">sil</span><span class="op">[</span>, <span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.2102046</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb103"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">sil</span>, col <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">optimal_k</span>, </span>
+<span>     border <span class="op">=</span> <span class="cn">NA</span>, </span>
+<span>     main <span class="op">=</span> <span class="st">"Silhouette Plot"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-67-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="key-clinical-insights" class="level3"><h3 class="anchored" data-anchor-id="key-clinical-insights">Key Clinical Insights</h3>
+<p>The k-prototypes clustering reveals clinically interpretable subgroups within the 2025 population, reflecting distinct metabolic profiles rather than arbitrary partitions.</p>
+<p><code>Cluster 4</code> concentrates individuals with clearly <code>elevated HbA1c</code> levels (mean ≈ 8%), corresponding to the diagnosed diabetic population, although separation from neighbouring clusters is weaker than for some other groups.</p>
+<p><code>Cluster 5</code> represents a pre-diabetic risk profile, characterised by younger individuals—predominantly women—who may benefit from early monitoring and preventive intervention.</p>
+<p><code>Clusters 1–3</code> capture different non-diabetic phenotypes with broadly healthy metabolic profiles and varying demographic compositions.</p>
+<p>Overall, the clustering distinguishes diabetic from non-diabetic individuals in a meaningful way, as supported by external validation using diabetes status, while also highlighting substantial overlap consistent with diabetes risk existing along a continuum rather than as discrete categories.</p>
+<p>This analysis reinforces that diabetes risk is not uniform across the population but varies systematically with age, sex, and BMI, supporting the use of stratified screening and targeted pre ,considering that this data is simulated and not real-world, the clinical interpretations should be viewed as illustrative rather than definitive.</p>
 </section></section><section id="bonus" class="level2"><h2 class="anchored" data-anchor-id="bonus">Bonus</h2>
 <section id="frequency-table-for-bmi-categories" class="level3"><h3 class="anchored" data-anchor-id="frequency-table-for-bmi-categories">Frequency Table for BMI Categories</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://danchaltiel.github.io/crosstable/reference/crosstable.html">crosstable</a></span><span class="op">(</span><span class="va">diabetes_data</span>, by <span class="op">=</span> <span class="st">"year"</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb104"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://danchaltiel.github.io/crosstable/reference/crosstable.html">crosstable</a></span><span class="op">(</span><span class="va">df_diabetes</span>, by <span class="op">=</span> <span class="st">"year"</span>, </span>
 <span>           cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"sex"</span>,<span class="st">"diabetes_total"</span>,</span>
 <span>                    <span class="st">"bmi_cat"</span>,<span class="st">"country"</span>,<span class="st">"sdi"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://davidgohel.github.io/flextable/reference/as_flextable.html">as_flextable</a></span><span class="op">(</span><span class="op">)</span> </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div class="tabwid">
-<style>.cl-f3c30da6{table-layout:auto;}.cl-f3bd7652{font-family:'Helvetica';font-size:11pt;font-weight:bold;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-f3bd7666{font-family:'Helvetica';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-f3bf8ea6{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f3bf8eb0{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f3bfa68e{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(0, 0, 0, 1.00);border-top: 1.5pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f3bfa698{background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 1.5pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f3bfa699{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f3bfa6a2{background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f3bfa6a3{background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f3bfa6a4{background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f3bfa6ac{background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f3bfa6ad{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f3bfa6b6{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style>
-<table data-quarto-disable-processing="true" class="cl-f3c30da6">
+<style>.cl-481f526a{table-layout:auto;}.cl-481a14d0{font-family:'Helvetica';font-size:11pt;font-weight:bold;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-481a14e4{font-family:'Helvetica';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-481c263a{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-481c263b{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-481c3c56{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(0, 0, 0, 1.00);border-top: 1.5pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-481c3c60{background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 1.5pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-481c3c61{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-481c3c6a{background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-481c3c6b{background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-481c3c74{background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-481c3c75{background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-481c3c76{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-481c3c7e{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style>
+<table data-quarto-disable-processing="true" class="cl-481f526a">
 <thead>
 <tr style="overflow-wrap:break-word;">
-<th rowspan="2" class="cl-f3bfa68e"><p class="cl-f3bf8ea6"><span class="cl-f3bd7652">label</span></p></th>
-<th rowspan="2" class="cl-f3bfa68e"><p class="cl-f3bf8ea6"><span class="cl-f3bd7652">variable</span></p></th>
-<th colspan="2" class="cl-f3bfa698"><p class="cl-f3bf8ea6"><span class="cl-f3bd7652">year</span></p></th>
+<th rowspan="2" class="cl-481c3c56"><p class="cl-481c263a"><span class="cl-481a14d0">label</span></p></th>
+<th rowspan="2" class="cl-481c3c56"><p class="cl-481c263a"><span class="cl-481a14d0">variable</span></p></th>
+<th colspan="2" class="cl-481c3c60"><p class="cl-481c263a"><span class="cl-481a14d0">year</span></p></th>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<th class="cl-f3bfa699"><p class="cl-f3bf8ea6"><span class="cl-f3bd7652">2015</span></p></th>
-<th class="cl-f3bfa699"><p class="cl-f3bf8ea6"><span class="cl-f3bd7652">2025</span></p></th>
+<th class="cl-481c3c61"><p class="cl-481c263a"><span class="cl-481a14d0">2015</span></p></th>
+<th class="cl-481c3c61"><p class="cl-481c263a"><span class="cl-481a14d0">2025</span></p></th>
 </tr>
 </thead>
 <tbody>
 <tr style="overflow-wrap:break-word;">
-<td rowspan="2" class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">sex</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">men</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">125 (50.00%)</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">125 (50.00%)</span></p></td>
+<td rowspan="2" class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">sex</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">men</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">125 (50.00%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">125 (50.00%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">woman</span></p></td>
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">125 (50.00%)</span></p></td>
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">125 (50.00%)</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">woman</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">125 (50.00%)</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">125 (50.00%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td rowspan="2" class="cl-f3bfa6a4"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">diabetes_total</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">no</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">212 (53.00%)</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">188 (47.00%)</span></p></td>
+<td rowspan="2" class="cl-481c3c74"><p class="cl-481c263b"><span class="cl-481a14e4">diabetes_total</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">no</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">212 (53.00%)</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">188 (47.00%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">yes</span></p></td>
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">38 (38.00%)</span></p></td>
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">62 (62.00%)</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">yes</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">38 (38.00%)</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">62 (62.00%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td rowspan="4" class="cl-f3bfa6a4"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">bmi_cat</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">Normal weight</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">95 (48.22%)</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">102 (51.78%)</span></p></td>
+<td rowspan="4" class="cl-481c3c74"><p class="cl-481c263b"><span class="cl-481a14e4">bmi_cat</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">Normal weight</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">95 (48.22%)</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">102 (51.78%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">Obesity</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">56 (54.90%)</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">46 (45.10%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">Obesity</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">56 (54.90%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">46 (45.10%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">Overweight</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">85 (52.15%)</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">78 (47.85%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">Overweight</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">85 (52.15%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">78 (47.85%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">Underweight</span></p></td>
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">14 (36.84%)</span></p></td>
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">24 (63.16%)</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">Underweight</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">14 (36.84%)</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">24 (63.16%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td rowspan="5" class="cl-f3bfa6a4"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">country</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">Africa</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">67 (67.00%)</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">33 (33.00%)</span></p></td>
+<td rowspan="5" class="cl-481c3c74"><p class="cl-481c263b"><span class="cl-481a14e4">country</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">Brazil</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">33 (33.00%)</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">67 (67.00%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">Brazil</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">33 (33.00%)</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">67 (67.00%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">China</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">66 (56.90%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">50 (43.10%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">China</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">66 (56.90%)</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">50 (43.10%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">Italy</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">34 (40.48%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">50 (59.52%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">Rome</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">34 (40.48%)</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">50 (59.52%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">South Africa</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">67 (67.00%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">33 (33.00%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">USA</span></p></td>
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">50 (50.00%)</span></p></td>
-<td class="cl-f3bfa6a2"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">50 (50.00%)</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">USA</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">50 (50.00%)</span></p></td>
+<td class="cl-481c3c6a"><p class="cl-481c263b"><span class="cl-481a14e4">50 (50.00%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td rowspan="3" class="cl-f3bfa6ad"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">sdi</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">High</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">100 (50.00%)</span></p></td>
-<td class="cl-f3bfa6ac"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">100 (50.00%)</span></p></td>
+<td rowspan="3" class="cl-481c3c76"><p class="cl-481c263b"><span class="cl-481a14e4">sdi</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">High</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">100 (50.00%)</span></p></td>
+<td class="cl-481c3c75"><p class="cl-481c263b"><span class="cl-481a14e4">100 (50.00%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">Intermediate</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">100 (50.00%)</span></p></td>
-<td class="cl-f3bfa6a3"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">100 (50.00%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">Intermediate</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">100 (50.00%)</span></p></td>
+<td class="cl-481c3c6b"><p class="cl-481c263b"><span class="cl-481a14e4">100 (50.00%)</span></p></td>
 </tr>
 <tr style="overflow-wrap:break-word;">
-<td class="cl-f3bfa6b6"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">Low</span></p></td>
-<td class="cl-f3bfa6b6"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">50 (50.00%)</span></p></td>
-<td class="cl-f3bfa6b6"><p class="cl-f3bf8eb0"><span class="cl-f3bd7666">50 (50.00%)</span></p></td>
+<td class="cl-481c3c7e"><p class="cl-481c263b"><span class="cl-481a14e4">Low</span></p></td>
+<td class="cl-481c3c7e"><p class="cl-481c263b"><span class="cl-481a14e4">50 (50.00%)</span></p></td>
+<td class="cl-481c3c7e"><p class="cl-481c263b"><span class="cl-481a14e4">50 (50.00%)</span></p></td>
 </tr>
 </tbody>
 </table>
@@ -1012,9 +1488,9 @@ X-squared = 7.8461, df = 4, p-value = 0.09738</code></pre>
 </section><section id="bmi-categories-by-year" class="level3"><h3 class="anchored" data-anchor-id="bmi-categories-by-year">BMI Categories by Year</h3>
 <p>The distribution of BMI categories by year can be examined using counts and proportions.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb50"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">diabetes_data</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">bmi_cat</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb105"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df_diabetes</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html">count</a></span><span class="op">(</span><span class="va">year</span>, <span class="va">bmi_cat</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>prop <span class="op">=</span> <span class="va">n</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 8 × 4
@@ -1033,7 +1509,7 @@ X-squared = 7.8461, df = 4, p-value = 0.09738</code></pre>
 </div>
 </section><section id="visualizing-bmi-categories-by-year" class="level3"><h3 class="anchored" data-anchor-id="visualizing-bmi-categories-by-year">Visualizing BMI Categories by Year</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb52"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">diabetes_data</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb107"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">df_diabetes</span>, </span>
 <span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">bmi_cat</span>, fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"BMI categories by year"</span>,</span>
@@ -1042,14 +1518,14 @@ X-squared = 7.8461, df = 4, p-value = 0.09738</code></pre>
 <span>       fill <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-35-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-70-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 </section><section id="proportional-distribution-of-bmi-categories-by-year" class="level3"><h3 class="anchored" data-anchor-id="proportional-distribution-of-bmi-categories-by-year">Proportional Distribution of BMI Categories by Year</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb53"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">diabetes_data</span>, </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb108"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_diabetes</span>, </span>
 <span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">bmi_cat</span>, fill <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"fill"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html">scale_y_continuous</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="va"><a href="https://scales.r-lib.org/reference/percent_format.html">percent</a></span><span class="op">)</span> <span class="op">+</span></span>
@@ -1059,7 +1535,7 @@ X-squared = 7.8461, df = 4, p-value = 0.09738</code></pre>
 <span>       fill <span class="op">=</span> <span class="st">"Year"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
-<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-36-1.png" class="img-fluid figure-img" width="672"></p>
+<figure class="figure"><p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-71-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1489,7 +1965,7 @@ X-squared = 7.8461, df = 4, p-value = 0.09738</code></pre>
 </div>   
     <div class="nav-footer-center">
 <p><a href="https://www.rladiesrome.org/" target="_blank"> <img src="images/rconsortium.png" alt="rconsortium logo" style="height:60px;"></a></p>
-<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/rlad iesrome/Principles-of-data-Analysis-in-R/edit/main/02-exploring-diabetes-data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/rlad iesrome/Principles-of-data-Analysis-in-R/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/rladiesrome/Principles-of-data-Analysis-in-R/edit/main/02-exploring-diabetes-data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/rladiesrome/Principles-of-data-Analysis-in-R/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div>
     <div class="nav-footer-right">
       <ul class="footer-items list-unstyled">
 <li class="nav-item compact">

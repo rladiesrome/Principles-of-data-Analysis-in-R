@@ -6,7 +6,7 @@ date: "17 December, 2025"
 description: |
   This tutorial demonstrates exploratory data analysis (EDA) techniques on a simulated diabetes dataset for the years 2015 and 2025, covering data import, pre-processing, visualization, summary statistics, prevalence calculation, and statistical inference.
 categories: [Tutorials, EDA, Diabetes, Clustering]
-tags: [R, EDA, Diabetes, Data Analysis, Statistics]
+tags: [Data Analysis, EDA, Diabetes, Descriptive Statistics]
 execute:
   echo: true
   warning: false
@@ -66,22 +66,32 @@ Before we start, we load a small set of packages.
 ```{r}
 #| eval: false
 install.packages(c("readxl", "janitor", "tidyverse", 
-                   "scales", "crosstable"))
+                   "scales", "crosstable", 
+                   "vcd", "DescTools",
+                   "cluster","clustMixType"))
 ```
 
 ### Load Required Libraries
 
 ```{r}
-library(readxl)
-library(janitor)
-library(tidyverse)
-library(scales)
-library(crosstable)
+# Packages for Data Manipulation and Visualization
+library(readxl) # For read_excel()
+library(janitor) # For clean_names()
+library(tidyverse) # For data manipulation and visualization
+# tidyverse::tidyverse_packages()
+library(scales) # For scale_y_continuous(labels = scales::percent)
+library(crosstable) # For crosstable()
+# Packages for Clustering
+library(vcd)    # For assocstats()
+library(DescTools) # For CramerV()
+library(cluster) # For data manipulation
+library(clustMixType) # For k-prototypes clustering
 ```
 
 ```{r}
 #| echo: false
 #| include: false
+
 theme_set(theme_minimal() +
             theme(
               plot.title = element_text(hjust = 0.5, 
@@ -90,8 +100,7 @@ theme_set(theme_minimal() +
               plot.subtitle = element_text(hjust = 0.5, 
                                            size = 12),
               axis.title = element_text(size = 12),
-              axis.text = element_text(size = 10)
-            ))
+              axis.text = element_text(size = 10)))
 ```
 
 ## Data Import
@@ -121,8 +130,8 @@ In particular, we use the `bind_rows` function from the `dplyr` package to stack
 
 ```{r}
 data_raw <- bind_rows(
-  d2015 |> mutate(year = 2015),
-  d2025 |> mutate(year = 2025)) |> 
+  d2015 %>% mutate(year = 2015),
+  d2025 %>% mutate(year = 2025)) %>% 
   janitor::clean_names()
 ```
 
@@ -160,41 +169,41 @@ How would you handle missing values in a dataset? What strategies would you cons
 
 Data are usually not in the exact format needed for analysis. Therefore, we create new variables based on existing ones to facilitate the analysis. We are looking at making comparisons between two years to see how diabetes level changes along the time.
 
-In this case , we create three derived variables:
+In this case, we create three derived variables:
 
--   Laboratory-defined diabetes (HbA1c ≥ 6.5)
+-   Laboratory-defined diabetes ($HbA1c ≥ 6.5$)
 -   Total diabetes (self-report OR laboratory, excluding gestational diabetes)
 -   Age groups (set of age bands to support grouped summaries)
 
 This step involves using the `mutate` function from the `dplyr` package to create new columns based on conditions applied to existing columns. And we use the `if_else` and `case_when` functions to define the logic for these new variables.
 
 ```{r}
-df_diabetes <- data_raw |>
+df_diabetes <- data_raw %>%
   mutate(
     # Laboratory-defined diabetes
-    diabetes_lab = if_else(lab_hba1c >= 6.5, "yes", "no", missing = NA_character_),
+    diabetes_lab = if_else(lab_hba1c >= 6.5, 
+                           "yes", "no", 
+                           missing = NA_character_),
     # Total diabetes (self-report OR laboratory, excluding gestational diabetes)
     diabetes_total = case_when(
       gestational_diabetes == "yes" ~ "no",
       diabetes_self_report == "yes" | diabetes_lab == "yes" ~ "yes",
-      TRUE ~ "no"
-    ),
+      TRUE ~ "no"),
     # Age groups
     age_group = case_when(
       age < 50 ~ "40–49",
       age < 60 ~ "50–59",
-      TRUE ~ "60+"
+      TRUE ~ "60+")
     )
-  )
 ```
 
 ## Exploratory data Analysis (EDA)
 
-Exploratory Data Analysis (EDA) is a crucial step in understanding the underlying patterns, relationships, and distributions within a dataset. It involves using various statistical and graphical techniques to summarize and visualize the data. EDA helps to identify potential issues, outliers, and trends that may inform subsequent analyses or modelling efforts.
+`Exploratory Data Analysis (EDA)` is a crucial step in understanding the underlying patterns, relationships, and distributions within a dataset. It involves using various statistical and graphical techniques to summarize and visualize the data. EDA helps to identify potential issues, outliers, and trends that may inform subsequent analyses or modelling efforts.
 
 ### Distribution plot for HbA1c (2015 only)
 
-Let's visualize the distribution of HbA1c levels for the year 2015 using a histogram combined with a density plot. This will help us understand the spread and central tendency of HbA1c values in that year.
+Let's visualize the distribution of `HbA1c` levels for the year 2015 using a `histogram` combined with a `density plot`. This will help us understand the spread and central tendency of HbA1c values in that year.
 
 ```{r}
 ggplot(data = d2015, 
@@ -209,16 +218,18 @@ ggplot(data = d2015,
        x = "HbA1c (%)",
        y = "Density") 
 ```
+We can see that the distribution of HbA1c levels in 2015 is right-skewed, with a peak around $5-6\%$. This indicates that most individuals had HbA1c levels within the normal range, but there is a tail of higher values indicating some individuals with elevated HbA1c levels.
 
 ### HbA1c distribution in both years
 
-To compare the distribution of **HbA1c levels between 2015 and 2025**, we can create a density plot that overlays the distributions for both years. This will allow us to visually assess any changes in HbA1c levels over time.
+To compare the distribution of **HbA1c levels between 2015 and 2025**, we can create a `density plot` that overlays the distributions for both years. This will allow us to visually assess any changes in HbA1c levels over time.
 
 ```{r}
 df_diabetes %>%
   ggplot(aes(x = lab_hba1c, 
            fill = as.factor(year))) +
-  geom_density(alpha = 0.5) +
+  geom_density(alpha = 0.5,
+               linewidth = 0.2) +
   labs(title = "HbA1c Distribution — 2015 vs 2025",
        x = "HbA1c (%)",
        y = "Density",
@@ -227,13 +238,14 @@ df_diabetes %>%
 
 ### Age distribution by year
 
-To check the age distribution for both years, we can create overlapping histograms. This will help us visualize how the age distribution of the population has changed from 2015 to 2025.
+To check the age distribution for both years, we can create `overlapping histograms`. This will help us visualize how the age distribution of the population has changed from 2015 to 2025.
 
 ```{r}
 ggplot(data = df_diabetes,
        mapping = aes(x = age, 
                      fill = factor(year))) +
   geom_histogram(position = "identity", 
+                 color = "grey80",
                  alpha = 0.5, bins = 30) +
   labs(title = "Age Distribution: 2015 vs 2025",
        fill = "Year",
@@ -243,24 +255,29 @@ ggplot(data = df_diabetes,
 
 ### Age Boxplots
 
+To further explore the age distribution by `year` and gender (`sex`), we can create `boxplots`. Boxplots provide a visual summary of the distribution, median, quartiles, and potential outliers for age across different years and genders.
+
 ```{r}
 ggplot(df_diabetes,
        aes(x = factor(year), y = age, 
            fill = factor(year))) +
-  geom_boxplot() +
+  geom_boxplot(median.color = "grey70",) +
+  scale_fill_manual(values = c("2015" = "lightblue", 
+                             "2025" = "salmon")) +
   facet_wrap(~sex) +
   labs(title = "Age Distribution by Year",
        x = "Year",
        y = "Age",
        fill = "Year") 
 ```
+This plot shows the age distribution for both years separately for males and females. We can observe any shifts in median age or variability between the two years and across genders. We do not have outliers in this dataset.
 
 ## Summary Statistics
 
 Now that we have explored the data visually, we can compute some summary statistics to quantify key characteristics of the dataset, and compare them across the two years.
 
 ```{r}
-df_diabetes |>
+df_diabetes %>%
   summarise(
     n = n(),
     age_mean = mean(age, na.rm = TRUE),
@@ -268,8 +285,8 @@ df_diabetes |>
     hba1c_mean = mean(lab_hba1c, na.rm = TRUE),
     hba1c_sd   = sd(lab_hba1c, na.rm = TRUE)
     ) %>%
-  round(2) %>%
-  t()
+  round(2) %>% # Round to 2 decimal places
+  t() # Transpose for better layout
 ```
 
 The results show the overall mean and standard deviation for age and HbA1c levels across the entire dataset, without stratifying by year.
@@ -281,8 +298,8 @@ The mean age is approximately 56 years, with a standard deviation of about 12 ye
 To compare these statistics by year, we can use the `group_by` function to group the data by the `year` variable before summarising.
 
 ```{r}
-df_diabetes |>
-  group_by(year) |>
+df_diabetes %>%
+  group_by(year) %>%
   summarise(
     n = n(),
     age_mean = mean(age, na.rm = TRUE),
@@ -290,24 +307,23 @@ df_diabetes |>
     )
 ```
 
-
 ## Prevalence Calculation
 
 To calculate the prevalence of diabetes for each year, we can use the `group_by` and `summarise` functions to compute the mean of the binary indicator for diabetes status.
 
 ```{r}
-prev_diabetes <- df_diabetes |>
-  group_by(year, diabetes_total) |>
-  summarise(n = n(), .groups = "drop") |>
-  group_by(year) |> 
+prev_diabetes <- df_diabetes %>%
+  group_by(year, diabetes_total) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(year) %>% 
   mutate(prop = n / sum(n))
 
 prev_diabetes
 ```
 
 ```{r}
-prev_summary <- df_diabetes |>
-  group_by(year) |>
+prev_summary <- df_diabetes %>%
+  group_by(year) %>%
   summarise(prev_diabetes = mean(diabetes_total == "yes", 
                                  na.rm=TRUE))
 prev_summary
@@ -318,8 +334,8 @@ prev_summary
 To calculate prevalence with confidence intervals, we can use the `prop.test` function within a custom summarise operation.
 
 ```{r}
-prev_ci <- df_diabetes |>
-  group_by(year) |>
+prev_ci <- df_diabetes %>%
+  group_by(year) %>%
   summarise(
     n = n(),
     cases = sum(diabetes_total == "yes", na.rm = TRUE),
@@ -332,7 +348,7 @@ prev_ci
 
 ### Visualize diabetes prevalence by year
 
-To visualize diabetes prevalence by year, we can create a bar plot using the `ggplot2` package. This plot will show the proportion of individuals with diabetes for each year.
+To visualize diabetes prevalence by year, we can create a bar plot with the `errorbars` representing the confidence intervals. This plot will show the proportion of individuals with diabetes for each year.
 
 ```{r}
 ggplot(prev_ci, 
@@ -344,22 +360,29 @@ ggplot(prev_ci,
                     ymax = ci_upper), 
                 width = 0.2) +
   scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("2015" = "lightblue", 
+                               "2025" = "salmon")) +
   labs(title = "Diabetes Prevalence by Year",
        x = "Year",
        y = "Prevalence (%)",
        fill = "Year")
 ```
+This barplot shows the prevalence of diabetes for each year, along with the 95% confidence intervals. We can visually assess any changes in prevalence between 2015 and 2025.
 
 ### Interaction
 
-To explore the interaction between gender, age, and diabetes status, we can create a faceted bar plot. This plot will show the distribution of diabetes status across different age groups, separated by gender.
+To explore the `interaction between gender, age, and diabetes status`, we can create a `faceted bar plot`. This plot will show the distribution of diabetes status across different age groups, separated by gender.
 
 ```{r}
 ggplot(df_diabetes, 
        aes(x = age_group, 
            fill = diabetes_total)) +
-  geom_bar(position = "fill") +
+  geom_bar(position = "fill",
+           color = "white",
+           linewidth = 2) +
   scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c("yes" = "lightblue", 
+                               "no" = "salmon")) +
   labs(title = "Diabetes Status by Age Group and Gender",
        x = "Age Group",
        y = "Proportion",
@@ -373,13 +396,17 @@ Interaction between gender, age and diabetes
 ggplot(df_diabetes, 
        aes(x = diabetes_total, y = age, 
            fill = sex)) +
-  geom_boxplot(alpha = 0.6, 
+  geom_boxplot(median.color = "gray40",
                outlier.color = "gray40") +
+  scale_fill_manual(values = c("men" = "lightblue",
+                               "woman" = "salmon")) +
   labs(title = "Age Distribution by Diabetes Status and Gender",
        x = "Diabetes",
        y = "Age",
        fill = "Gender") 
 ```
+Here, we can observe how the proportion of individuals with diabetes varies across age groups for both men and women. Additionally, the boxplot shows the age distribution for individuals with and without diabetes, separated by gender.
+
 
 ## Qualitative Statistical Inference
 
@@ -419,7 +446,7 @@ res_year
 ### Chi-square Test for Country and Diabetes Status in 2025
 
 ```{r}
-df_diabetes_2025 <- df_diabetes |> filter(year == 2025)
+df_diabetes_2025 <- df_diabetes %>% filter(year == 2025)
 ```
 
 Contingency table for countries and diabetes
@@ -447,7 +474,7 @@ residuals <- chi_2025$stdres
 round(residuals, 2)
 ```
 
-Identify where the greatest contribution lies
+Identify where the greatest contribution lies:
 
 ```{r}
 mosaicplot(tab_2025,
@@ -460,6 +487,400 @@ Interpretation: We fail to reject the null hypothesis. There is no statistically
 
 Although some countries show larger deviations from expected counts, these differences are not strong enough, overall, to conclude that prevalence differs significantly across countries.
 :::
+
+
+## K-prototypes Clustering
+
+In this final analytical step, we explore whether individuals in the 2025 dataset can be grouped into distinct profiles based on a combination of clinical and demographic characteristics. Rather than focusing on hypothesis testing, this section introduces unsupervised learning as an exploratory tool to uncover structure in the data.
+
+Clustering is particularly useful in public health settings when the goal is to:
+
+	- identify subgroups with similar risk profiles,
+	- explore heterogeneity within a population,
+	- generate hypotheses for targeted interventions.
+
+Because our dataset contains both numeric and categorical variables, we use the `k-prototypes algorithm`, which is specifically designed for mixed-type data.
+
+> Why k-prototypes?
+
+Traditional clustering methods such as `k-means` only work with numeric variables, while `k-modes` are limited to categorical data. The `k-prototypes` algorithm combines both approaches:
+
+	- Euclidean distance is used for numeric variables,
+	- matching dissimilarity is used for categorical variables,
+	- a tuning parameter ($\lambda$) balances the contribution of each type.
+
+This makes k-prototypes well suited for health datasets that mix laboratory values (e.g. `HbA1c`) with demographic or clinical categories (e.g. `sex`, `BMI group`, `age band`).
+
+### Data Preparation for Clustering
+
+We restrict the clustering analysis to observations from 2025, as the aim is to characterise the most recent population snapshot rather than temporal change.
+
+```{r}
+str(df_diabetes_2025)
+```
+
+Before clustering, variables must be correctly typed. Numeric variables should remain numeric, while categorical variables must be encoded as factors.
+
+```{r}
+cluster_data_2025 <- df_diabetes_2025 %>%
+  select(-year)%>%
+  mutate(across(where(is.character), as.factor))
+
+str(cluster_data_2025)
+```
+
+At this stage, the dataset contains a mixture of numeric and categorical features suitable for k-prototypes clustering.
+
+### Checking Redundancy and Association Between Variables
+
+Clustering can be distorted if highly redundant variables are included. We therefore assess association within numeric variables and dependence among categorical variables.
+
+#### Numeric Correlation (Pearson)
+
+```{r}
+cluster_data_2025 %>%
+  select_if(is.numeric) %>%
+  cor()
+```
+
+`Age` and `HbA1c` show little correlation, so both can be retained. However, `age_group` is derived directly from age, so age is removed later to avoid duplicating the same information. So we will drop `age` from the clustering dataset.
+```{r}
+features_num <- c(#"age", 
+                  "lab_hba1c")
+```
+
+
+#### Categorical Association (Cramér’s V)
+
+For categorical variables, we use `Cramér’s V`, a normalized measure derived from the `chi-square` statistic:
+
+$$ 
+V = \sqrt{\frac{\chi^2 / n}{\min(k - 1, r - 1)}} 
+$$ {#eq-cramers_v}
+
+Where:  
+-   ($\chi^2$) is the Chi-square statistic  
+-   ($n$) is the total number of observations  
+-   ($k$) is the number of categories in one variable  
+-   ($r$) is the number of categories in the other variable
+
+Cramer V is a measure of association between two nominal categorical variables. It ranges from 0 (no association) to 1 (perfect association). It is based on the Chi-square statistic and is useful for understanding the strength of association between categorical variables.
+
+The inventor of Cramér's V, Harald Cramér, did not specify strict cut-offs for interpreting the values. However, in practice, researchers often use the following guidelines to interpret the strength of association:
+
+-   0 to 0.1: Negligible association
+-   0.1 to 0.3: Weak association
+-   0.3 to 0.5: Moderate association
+-   0.5 to 1.0: Strong association
+
+In this case, we will identify pairs of categorical variables with **Cramér's V less than or equal to 0.5**, indicating weak to moderate associations.
+
+We first examine the relationship between `country` and `sdi`, which are conceptually related using the `assocstats()` function from the `vcd` package:
+```{r}
+vcd::assocstats(table(cluster_data_2025$country, cluster_data_2025$sdi))$cramer
+```
+Or, we can even use the `CramerV()` function from the `DescTools` package:
+```{r}
+DescTools::CramerV(cluster_data_2025$country, cluster_data_2025$sdi)
+```
+
+Both packages show a value of `r round(DescTools::CramerV(cluster_data_2025$country, cluster_data_2025$sdi), 3)`, indicating a high association between `country` and `SDI.` The high association suggests that including both variables may overweight the same socioeconomic information. However, association with other categorical variables is weaker, so this decision is not automatic and requires judgement.
+
+**Test all pairs of categorical features**
+
+To examine this systematically, we compute Cramér’s V for all pairs of categorical variables setting up a function to compute Cramér's V for any two categorical variables:
+```{r}
+cramers_v <- function(x, y) CramerV(table(x, y))
+```
+
+Extract the names of all categorical features:
+```{r}
+cluster_data_2025 %>%
+  select(where(is.factor)) %>%
+  names()
+```
+
+We focus on a subset of categorical features for clarity:
+```{r}
+features_cat <- c("sex", 
+                  "bmi_cat", 
+                  #"country", 
+                  #"sdi",
+                  "age_group")
+```
+
+Then we use the `expand_grid` function to create all possible pairs of categorical features, compute Cramér’s V for each pair, and filter for weak to moderate associations (Cramér's V <= 0.5):
+
+```{r}
+expand_grid(feature1 = features_cat,
+            feature2 = features_cat) %>%
+  filter(feature1 < feature2) %>% # keep unique pairs only
+  rowwise() %>%
+  mutate(cramers_v = cramers_v(
+    cluster_data_2025[[feature1]],
+    cluster_data_2025[[feature2]])) %>%
+  # Filter for Cramér's V <= 0.5 to identify weak to moderate associations
+  filter(cramers_v <= 0.5) %>%
+  arrange(desc(cramers_v)) -> cramers_df
+
+cramers_df
+```
+
+This confirms that the retained categorical variables are not strongly redundant.
+
+### Data Quality Checks: Outliers and Rare Categories
+
+Before clustering, we check:
+
+	- outliers in numeric variables,
+	- imbalanced categories in categorical variables.
+	
+```{r}
+cluster_data_2025 %>%
+  select(lab_hba1c) %>%
+  ggplot() +
+  geom_boxplot(aes(x = lab_hba1c)) 
+```
+We can see the presence of outliers in `lab_hba1c` variable. To handle these outliers , we can perform a technique called **winsorization**, which involves capping extreme values to reduce their impact on the analysis. In this case, we will cap the values at the 1st and 99th percentiles.
+
+The extreme values in `lab_hba1c` can disproportionately influence the clustering results. 
+```{r}
+summary(cluster_data_2025$lab_hba1c)
+```
+The maximum value of `lab_hba1c` before winsorization is `r max(cluster_data_2025$lab_hba1c)`.
+
+Then we calculate the upper whisker value using the interquartile range (IQR) method.
+```{r}
+Q1 <- quantile(cluster_data_2025$lab_hba1c, 0.25)
+Q3 <- quantile(cluster_data_2025$lab_hba1c, 0.75)
+IQR_val <- Q3 - Q1
+upper_whisker <- Q3 + 1.5 * IQR_val
+```
+
+In summary, winsorizing the `lab_hba1c` variable helps to mitigate the influence of extreme outliers on the clustering results.
+
+#### Winsorization of lab_hba1c
+
+```{r}
+# Save the original values
+cluster_data_2025$lab_hba1c_original <- cluster_data_2025$lab_hba1c
+```
+
+We use `pmin()` function to force the `lab_hba1c` outliers to equal the `upper whisker value`, it selects the minimum out of: the existing lab_hba1c value and the upper whisker value.
+```{r}
+cluster_data_2025$lab_hba1c <- pmin(cluster_data_2025$lab_hba1c, upper_whisker)
+```
+
+
+After winsorization - where did the outliers go?
+```{r}
+boxplot(cluster_data_2025$lab_hba1c, 
+        main = "lab_hba1c – After Winsorization",
+        horizontal = TRUE)
+```
+
+#### Unbalanced categorical features
+
+We check the distribution of categories in each categorical variable to ensure there are no extremely rare categories that could distort clustering.
+
+```{r}
+cat_balance <- cluster_data_2025 %>%
+  select_if(is.factor) %>%
+  pivot_longer(cols = everything(),
+               names_to = "variable",
+               values_to = "category") %>%
+  count(variable, category, name = "n") %>%
+  group_by(variable) %>%
+  mutate(pct = round(100 * n / sum(n), 1),
+         is_rare = (n / sum(n)) < 0.05 ) %>%
+  ungroup() %>%
+  arrange(variable, desc(n))
+
+cat_balance
+```
+
+No categories are extremely rare (i.e., less than 5% of total), so we can retain all categorical variables for clustering.
+
+#### Scaling Numeric Variables and Final Variable Selection
+
+Why scaling? Scaling numeric variables ensures that they contribute equally to the distance calculations used in clustering. Without scaling, variables with larger ranges can dominate the distance metric, leading to biased clustering results.
+
+We then retain the final set of variables for clustering and standardise the numeric input.
+
+```{r}
+cluster_data_2025 <- cluster_data_2025 %>%
+  select(lab_hba1c,
+         sex,
+         age_group,
+         bmi_cat) %>%
+  # here is where scaling happens
+  mutate(lab_hba1c = as.numeric(scale(lab_hba1c)))
+```
+
+### Choosing the Number of Clusters
+
+We use the elbow method, examining how within-cluster variation decreases as the number of clusters increases. What we do here is `run the k-prototypes algorithm` for a `range of cluster numbers (k = 2 to 10)` and record the total `within-cluster sum of squares (WSS)` for each k. We use the `map_dbl` function from the `purrr` package to map over the range of k values and store the WSS results. And the `kproto` function from the `clustMixType` package to perform k-prototypes clustering on the prepared dataset for 2025.
+
+```{r}
+set.seed(123)
+kproto_wss_2025 <- purrr::map_dbl(2:10, function(k) {
+  
+  kpres <- kproto(cluster_data_2025,
+                  k, 
+                  verbose = FALSE) 
+    
+  kpres$tot.withinss
+})
+```
+
+And plot the WSS values to identify the "elbow" point where adding more clusters yields diminishing returns in reducing WSS.
+```{r}
+plot(2:10, kproto_wss_2025, type = "b",
+     xlab = "Number of clusters (k)",
+     ylab = "Total within-cluster sum of squares",
+     main = "Elbow Method (2025)")
+```
+
+Based on the elbow plot, we choose `k = 5` as the optimal number of clusters.
+```{r}
+optimal_k <- 5  # chosen from elbow
+```
+
+### Run K-prototypes Clustering
+
+We use the `kproto` function again, but this time specifying the `optimal number of clusters (k = 5)` determined from the elbow method. We set a random seed for reproducibility, and configure the algorithm to run with 25 random starts and a maximum of 25 iterations per start to ensure convergence.
+```{r}
+set.seed(123456789)
+kp_model <- kproto(cluster_data_2025, 
+                   k = optimal_k,
+                   nstart = 25,
+                   iter.max = 25,
+                   lambda = NULL,
+                   verbose = FALSE)
+```
+
+
+Add a cluster number (1 to 5) to each datapoint in the dataset:
+
+```{r}
+cluster_data_2025$cluster <- kp_model$cluster
+```
+
+#### Interpreting the Clusters
+
+Key diagnostic outputs help assess clustering quality and interpretability:
+```{r}
+kp_model$size # Number of points in each cluster
+```
+
+Lambda balances numerical (Euclidean) vs categorical (matching) distance:
+
+$$
+\lambda =\sum{\frac{\text{(std_dev of numerical features)}}{\text{(n. numerical features)}}}
+$$ {#eq-lambda}
+
+Calculate lambda manually to verify:
+
+```{r}
+kp_model$lambda # Lambda value used
+```
+
+The `withinss` values tell us how compact each cluster is. Lower is better, it means the patients in that cluster are more similar to each other.
+```{r}
+kp_model$withinss
+```
+
+```{r}
+# Compare cluster compactness
+barplot(kp_model$withinss, 
+        names.arg = paste("Cluster", 1:5),
+        ylab = "Within-cluster SS",
+        main = "Cluster Compactness (lower = more compact)")
+```
+
+The total `within-cluster sum of squares` represents the overall compactness. When we did the elbow plot, we were looking at how this total changes as we add more clusters. We want tight clusters without over-fragmenting our data.
+```{r}
+kp_model$tot.withinss
+```
+The cluster centres for categorical variables represent modal categories, while numeric centres reflect mean values.
+
+```{r}
+kp_model$centers
+```
+
+
+```{r}
+cluster_data_2025 %>%
+  group_by(cluster) %>%
+  summarise(
+    n = n(),
+    hba1c = round(mean(lab_hba1c), 1),
+    sex = names(which.max(table(sex))),
+    bmi_cat = names(which.max(table(bmi_cat))),
+    age = names(which.max(table(age_group)))
+  )
+```
+
+### External Validation Using Diabetes Status
+
+Although clustering is unsupervised, we can validate the result externally by checking whether clusters align with known diabetes status.
+
+Add diabetes status back to cluster data:
+```{r}
+cluster_data_2025$diabetes <- df_diabetes_2025$diabetes_total
+```
+
+
+```{r}
+chisq.test(table(cluster_data_2025$cluster, cluster_data_2025$diabetes))
+```
+
+
+```{r}
+assocstats(table(cluster_data_2025$cluster, cluster_data_2025$diabetes))
+```
+
+Practical implication for your clustering workflow:
+
+A Cramér’s V of `r DescTools::CramerV(cluster_data_2025$cluster, cluster_data_2025$diabetes)` strongly suggests these two categorical variables carry overlapping information. If both are included in clustering, the algorithm may effectively *double count* the same underlying structure, increasing the weight of that dimension in cluster formation. 
+
+### Cluster Quality: Silhouette Analysis
+
+Silhouette analysis measures how similar an object is to its own cluster compared to other clusters. The silhouette value ranges from -1 to 1, where a value close to 1 indicates that the object is well clustered, a value of 0 indicates that the object is on or very close to the decision boundary between two neighboring clusters, and negative values indicate that the object may have been assigned to the wrong cluster.
+
+```{r}
+dist_matrix <- cluster_data_2025 %>%
+  select(-cluster, -diabetes) %>%
+  cluster::daisy(metric = "gower")
+```
+
+
+```{r}
+sil <- silhouette(kp_model$cluster, dist_matrix)
+mean(sil[, 3])
+```
+
+```{r}
+plot(sil, col = 1:optimal_k, 
+     border = NA, 
+     main = "Silhouette Plot")
+```
+
+
+### Key Clinical Insights
+
+The k-prototypes clustering reveals clinically interpretable subgroups within the 2025 population, reflecting distinct metabolic profiles rather than arbitrary partitions.
+
+`Cluster 4` concentrates individuals with clearly `elevated HbA1c` levels (mean ≈ 8%), corresponding to the diagnosed diabetic population, although separation from neighbouring clusters is weaker than for some other groups.
+
+`Cluster 5` represents a pre-diabetic risk profile, characterised by younger individuals—predominantly women—who may benefit from early monitoring and preventive intervention.
+
+`Clusters 1–3` capture different non-diabetic phenotypes with broadly healthy metabolic profiles and varying demographic compositions.
+
+
+Overall, the clustering distinguishes diabetic from non-diabetic individuals in a meaningful way, as supported by external validation using diabetes status, while also highlighting substantial overlap consistent with diabetes risk existing along a continuum rather than as discrete categories.
+
+This analysis reinforces that diabetes risk is not uniform across the population but varies systematically with age, sex, and BMI, supporting the use of stratified screening and targeted pre ,considering that this data is simulated and not real-world, the clinical interpretations should be viewed as illustrative rather than definitive.
 
 ## Bonus
 
@@ -477,9 +898,9 @@ crosstable(df_diabetes, by = "year",
 The distribution of BMI categories by year can be examined using counts and proportions.
 
 ```{r}
-df_diabetes |>
-  count(year, bmi_cat) |>
-  group_by(year) |>
+df_diabetes %>%
+  count(year, bmi_cat) %>%
+  group_by(year) %>%
   mutate(prop = n / sum(n))
 ```
 
@@ -508,14 +929,4 @@ ggplot(df_diabetes,
        fill = "Year")
 ```
 
-
-## Clustering
-
-To explore potential patterns in the data, we can perform clustering analysis based on age and HbA1c levels. Clustering helps to identify groups of individuals with similar characteristics.
-
-### Data Preparation for Clustering
-
-```{r}
-str(df_diabetes_2025)
-```
 

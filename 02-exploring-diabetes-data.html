@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="quarto-1.8.25" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+<meta name="author" content="Rafaela Ribeiro Lucas, Federica Gazzelloni, and Lucy Michaels" />
+<meta name="dcterms.date" content="2025-12-17" />
+<meta name="description" content="This tutorial demonstrates exploratory data analysis (EDA) techniques on a simulated diabetes dataset for the years 2015 and 2025, covering data import, pre-processing, visualization, summary statistics, prevalence calculation, and statistical inference." />
+
+<title>From Basics to Advanced Health Analytics: Exploring Diabetes Data</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<!-- htmldependencies:E3FAD763 -->
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<link href="site_libs/tabwid-1.1.3/tabwid.css" rel="stylesheet" />
+<script src="site_libs/tabwid-1.1.3/tabwid.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="/index.html" class="navbar-brand navbar-brand-logo">
+    </a>
+    <a class="navbar-brand" href="/index.html">
+    <span class="navbar-title">Principles of Data Analysis in R</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+  aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation"
+  onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="/about.html"> 
+<span class="menu-text">About Us</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://rladiesrome.org/"> <i 
+  class="bi bi-globe" 
+  role="img" 
+>
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/rladiesrome"> <i 
+  class="bi bi-github" 
+  role="img" 
+>
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn"
+      data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" 
+      aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation"
+      onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <h1 class="quarto-secondary-nav-title no-breadcrumbs"></h1>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" role="link"
+        aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation"
+        onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+  <div id="quarto-announcement" data-announcement-id="d7a43450c80459af5bfbd602820c1da9" class="alert alert-info hidden"><i class="bi bi-info-circle quarto-announcement-icon"></i><div class="quarto-announcement-content">**Alert** - Course 1: Wednesday, 17 December 2025 at 18:00 CEST.</div><i class="bi bi-x-lg quarto-announcement-action"></i></div>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+      <a href="/index.html" class="sidebar-logo-link">
+      <img src="/images/homepage-logo.png" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none"/>
+      <img src="/images/homepage-logo.png" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none"/>
+      </a>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">1. Welcome</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/01-getting-started.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">2. Getting Started</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1"  role="navigation" aria-expanded="true">
+ <span class="menu-text">3. Data Analytics</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="/02-exploring-diabetes-data.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">3.1 Exploring Diabetes Data</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" ></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <div id="quarto-toc-target"></div>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">From Basics to Advanced Health Analytics: Exploring Diabetes Data</h1>
+<p class="subtitle lead">An Exploratory Data Analysis (EDA) Tutorial</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">Tutorials</div>
+    <div class="quarto-category">EDA</div>
+    <div class="quarto-category">Diabetes</div>
+    <div class="quarto-category">Clustering</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    <p>This tutorial demonstrates exploratory data analysis (EDA) techniques on a simulated diabetes dataset for the years 2015 and 2025, covering data import, pre-processing, visualization, summary statistics, prevalence calculation, and statistical inference.</p>
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Rafaela Ribeiro Lucas, Federica Gazzelloni, and Lucy Michaels </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 17, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+<nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview">Overview</a>
+  <ul>
+  <li><a href="#research-in-context" id="toc-research-in-context">Research in Context</a></li>
+  <li><a href="#research-questions" id="toc-research-questions">Research Questions</a></li>
+  </ul></li>
+  <li><a href="#packages" id="toc-packages">Packages</a>
+  <ul>
+  <li><a href="#install-required-packages" id="toc-install-required-packages">Install Required Packages</a></li>
+  <li><a href="#load-required-libraries" id="toc-load-required-libraries">Load Required Libraries</a></li>
+  </ul></li>
+  <li><a href="#data-import" id="toc-data-import">Data Import</a></li>
+  <li><a href="#pre-processing" id="toc-pre-processing">Pre-processing</a>
+  <ul>
+  <li><a href="#data-manipulation" id="toc-data-manipulation">Data Manipulation</a></li>
+  <li><a href="#data-inspection" id="toc-data-inspection">Data Inspection</a></li>
+  <li><a href="#handling-missing-values" id="toc-handling-missing-values">Handling Missing Values</a></li>
+  <li><a href="#creating-derived-variables" id="toc-creating-derived-variables">Creating Derived Variables</a></li>
+  </ul></li>
+  <li><a href="#exploratory-data-analysis-eda" id="toc-exploratory-data-analysis-eda">Exploratory data Analysis (EDA)</a>
+  <ul>
+  <li><a href="#distribution-plot-for-hba1c-2015-only" id="toc-distribution-plot-for-hba1c-2015-only">Distribution plot for HbA1c (2015 only)</a></li>
+  <li><a href="#hba1c-distribution-in-both-years" id="toc-hba1c-distribution-in-both-years">HbA1c distribution in both years</a></li>
+  <li><a href="#age-distribution-by-year" id="toc-age-distribution-by-year">Age distribution by year</a></li>
+  <li><a href="#age-boxplots" id="toc-age-boxplots">Age Boxplots</a></li>
+  </ul></li>
+  <li><a href="#summary-statistics" id="toc-summary-statistics">Summary Statistics</a>
+  <ul>
+  <li><a href="#comparisons-by-year" id="toc-comparisons-by-year">Comparisons by Year</a></li>
+  </ul></li>
+  <li><a href="#prevalence-calculation" id="toc-prevalence-calculation">Prevalence Calculation</a>
+  <ul>
+  <li><a href="#prevalence-table-with-confidence-intervals" id="toc-prevalence-table-with-confidence-intervals">Prevalence Table with Confidence Intervals</a></li>
+  <li><a href="#visualize-diabetes-prevalence-by-year" id="toc-visualize-diabetes-prevalence-by-year">Visualize diabetes prevalence by year</a></li>
+  <li><a href="#interaction" id="toc-interaction">Interaction</a></li>
+  </ul></li>
+  <li><a href="#qualitative-statistical-inference" id="toc-qualitative-statistical-inference">Qualitative Statistical Inference</a>
+  <ul>
+  <li><a href="#chi-square-test-for-year-and-diabetes-status" id="toc-chi-square-test-for-year-and-diabetes-status">Chi-square Test for Year and Diabetes Status</a></li>
+  <li><a href="#chi-square-test-for-country-and-diabetes-status-in-2025" id="toc-chi-square-test-for-country-and-diabetes-status-in-2025">Chi-square Test for Country and Diabetes Status in 2025</a></li>
+  </ul></li>
+  <li><a href="#k-prototypes-clustering" id="toc-k-prototypes-clustering">K-prototypes Clustering</a>
+  <ul>
+  <li><a href="#data-preparation-for-clustering" id="toc-data-preparation-for-clustering">Data Preparation for Clustering</a></li>
+  <li><a href="#checking-redundancy-and-association-between-variables" id="toc-checking-redundancy-and-association-between-variables">Checking Redundancy and Association Between Variables</a></li>
+  <li><a href="#data-quality-checks-outliers-and-rare-categories" id="toc-data-quality-checks-outliers-and-rare-categories">Data Quality Checks: Outliers and Rare Categories</a></li>
+  <li><a href="#choosing-the-number-of-clusters" id="toc-choosing-the-number-of-clusters">Choosing the Number of Clusters</a></li>
+  <li><a href="#run-k-prototypes-clustering" id="toc-run-k-prototypes-clustering">Run K-prototypes Clustering</a></li>
+  <li><a href="#external-validation-using-diabetes-status" id="toc-external-validation-using-diabetes-status">External Validation Using Diabetes Status</a></li>
+  <li><a href="#cluster-quality-silhouette-analysis" id="toc-cluster-quality-silhouette-analysis">Cluster Quality: Silhouette Analysis</a></li>
+  <li><a href="#key-clinical-insights" id="toc-key-clinical-insights">Key Clinical Insights</a></li>
+  </ul></li>
+  <li><a href="#bonus" id="toc-bonus">Bonus</a>
+  <ul>
+  <li><a href="#frequency-table-for-bmi-categories" id="toc-frequency-table-for-bmi-categories">Frequency Table for BMI Categories</a></li>
+  <li><a href="#bmi-categories-by-year" id="toc-bmi-categories-by-year">BMI Categories by Year</a></li>
+  <li><a href="#visualizing-bmi-categories-by-year" id="toc-visualizing-bmi-categories-by-year">Visualizing BMI Categories by Year</a></li>
+  <li><a href="#proportional-distribution-of-bmi-categories-by-year" id="toc-proportional-distribution-of-bmi-categories-by-year">Proportional Distribution of BMI Categories by Year</a></li>
+  </ul></li>
+  </ul>
+</nav>
+<section id="overview" class="level2">
+<h2>Overview</h2>
+<p>In this session, we perform an exploratory data analysis on a simulated diabetes dataset for 2015 and 2025. The dataset used in this tutorial is <strong>simulated</strong>, this means that the 2015 and 2025 data are <strong>not real patient records</strong> and are <strong>not drawn from GBD estimates or surveillance systems</strong>. Instead, they consist of synthetic data designed to resemble realistic diabetes patterns over time, including changes in prevalence, laboratory measurements, and population structure.</p>
+<p>The use of simulated data allows the analysis to focus on <strong>methodology</strong>, <strong>workflow</strong>, and <strong>interpretation</strong>, without privacy constraints or data access limitations. All results should therefore be interpreted as illustrative examples of analytical techniques rather than as epidemiological estimates.</p>
+<p>To explore how diabetes prevalence and characteristics vary over time and across populations, in this tutorial we will cover:</p>
+<ul>
+<li>Data Import</li>
+<li>Pre-processing</li>
+<li>Exploratory Data Visualization (EDA)</li>
+<li>Summary Statistics</li>
+<li>Prevalence Calculation</li>
+<li>Qualitative Statistical Inference</li>
+</ul>
+<blockquote>
+<p>Why Diabetes?</p>
+</blockquote>
+<p>Diabetes is a chronic health condition that affects how the body turns food into energy (blood glucose). It includes <strong>Type 1</strong>, <strong>Type 2</strong>, and <strong>gestational diabetes</strong>. The dataset used in this analysis contains information on individuals’ <code>diabetes status</code>, <code>laboratory measurements</code> (such as HbA1c levels), <code>demographic information</code> (age, sex, country), and <code>other health-related variables</code>.</p>
+<p>At the population level, diabetes is a major contributor to illness (<code>morbidity</code>) and premature death (<code>mortality</code>). Classified as a <strong>non-communicable disease (NCD)</strong>, it is associated with various complications, including <code>cardiovascular disease</code>, <code>kidney failure</code>, and <code>neuropathy.</code></p>
+<section id="research-in-context" class="level3">
+<h3>Research in Context</h3>
+<p>The <strong>Global Burden of Disease (GBD)</strong> study often identifies diabetes as a key driver of global health loss. According to <strong>GBD 2023</strong> estimates, approximately <strong>561 million people</strong> were living with diabetes worldwide in <strong>2023</strong>, which is roughly <span class="math inline">\(7\%\)</span> of the world’s population (561 million out of <span class="math inline">\(~8\)</span> billion).<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> In the same year, diabetes accounted for about <strong>90.2 million disability-adjusted life years (DALYs)</strong> globally, representing approximately <span class="math inline">\(3.2\%\)</span> of total global DALYs. Diabetes also contributed substantially to non-fatal health loss, with an estimated <strong>44.2 million years lived with disability (YLDs)</strong> in 2023, representing about <span class="math inline">\(4.5\%\)</span> of all global YLDs.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<p>From an analytical perspective, diabetes is commonly studied using measures such as <code>prevalence rates,</code> <code>risk factors</code>, and <code>associations with other health conditions</code>. Typical statistical tools include <code>descriptive statistics</code>, <code>hypothesis testing</code> (e.g., chi-square tests for categorical variables) for group comparisons, and exploratory methods such as <code>clustering</code>, <code>regression analysis</code>, and, in some settings, <code>survival analysis</code>.</p>
+</section>
+<section id="research-questions" class="level3">
+<h3>Research Questions</h3>
+<p>To focus the analysis, we begin by defining the research questions addressed in this tutorial:</p>
+<blockquote>
+<ol type="1">
+<li>Has the prevalence of diabetes changed significantly between 2015 and 2025?</li>
+</ol>
+</blockquote>
+<blockquote>
+<ol start="2" type="1">
+<li>Does the prevalence of diabetes differ significantly between countries in the year 2025?</li>
+</ol>
+</blockquote>
+</section>
+</section>
+<section id="packages" class="level2">
+<h2>Packages</h2>
+<p>Before we start, we load a small set of packages.</p>
+<section id="install-required-packages" class="level3">
+<h3>Install Required Packages</h3>
+<div class="cell">
+<div class="sourceCode" id="cb1"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="fu">c</span>(<span class="st">&quot;readxl&quot;</span>, <span class="st">&quot;janitor&quot;</span>, <span class="st">&quot;tidyverse&quot;</span>, </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&quot;scales&quot;</span>, <span class="st">&quot;crosstable&quot;</span>, </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&quot;vcd&quot;</span>, <span class="st">&quot;DescTools&quot;</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                   <span class="st">&quot;cluster&quot;</span>,<span class="st">&quot;clustMixType&quot;</span>))</span></code></pre></div>
+</div>
+</section>
+<section id="load-required-libraries" class="level3">
+<h3>Load Required Libraries</h3>
+<div class="cell">
+<div class="sourceCode" id="cb2"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Packages for Data Manipulation and Visualization</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl) <span class="co"># For read_excel()</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor) <span class="co"># For clean_names()</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># For data manipulation and visualization</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># tidyverse::tidyverse_packages()</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales) <span class="co"># For scale_y_continuous(labels = scales::percent)</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(crosstable) <span class="co"># For crosstable()</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Packages for Clustering</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vcd)    <span class="co"># For assocstats()</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(DescTools) <span class="co"># For CramerV()</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cluster) <span class="co"># For data manipulation</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(clustMixType) <span class="co"># For k-prototypes clustering</span></span></code></pre></div>
+</div>
+</section>
+</section>
+<section id="data-import" class="level2">
+<h2>Data Import</h2>
+<p>Data are stored in one Excel file with two sheets: one for 2015 and one for 2025. We read each sheet into R and clean the column names so they are consistent and easy to type.</p>
+<p>We use the <code>read_excel</code> function from the <code>readxl</code> package to read the data and the <code>clean_names</code> function from the <code>janitor</code> package to clean the column names.</p>
+<div class="cell">
+<div class="sourceCode" id="cb3"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>path <span class="ot">&lt;-</span> <span class="st">&quot;data/diabetes_study_filled_NEW.xlsx&quot;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>d2015 <span class="ot">&lt;-</span> readxl<span class="sc">::</span><span class="fu">read_excel</span>(path, </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">sheet =</span> <span class="st">&quot;2015&quot;</span>) </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>d2025 <span class="ot">&lt;-</span> readxl<span class="sc">::</span><span class="fu">read_excel</span>(path, </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                            <span class="at">sheet =</span> <span class="st">&quot;2025&quot;</span>) </span></code></pre></div>
+</div>
+</section>
+<section id="pre-processing" class="level2">
+<h2>Pre-processing</h2>
+<p>The pre-processing phase is crucial for ensuring the quality and integrity of the data before conducting any analysis. Data are often messy and may contain <strong>inconsistencies</strong>, <strong>missing values</strong>, or <strong>irrelevant information</strong> that can affect the results of the analysis.</p>
+<section id="data-manipulation" class="level3">
+<h3>Data Manipulation</h3>
+<p>Combine data for comparative analyses by year is straightforward, we <em>stack</em> the two datasets into a single table and add a year column. This is <strong>data manipulation</strong>; we merge the two datasets from 2015 and 2025 into a single dataset, adding a new column to indicate the year of each observation.</p>
+<p>In particular, we use the <code>bind_rows</code> function from the <code>dplyr</code> package to stack the two datasets vertically, and the <code>mutate</code> function to create a new column called <code>year</code>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb4"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data_raw <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  d2015 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">year =</span> <span class="dv">2015</span>),</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  d2025 <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">year =</span> <span class="dv">2025</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  janitor<span class="sc">::</span><span class="fu">clean_names</span>()</span></code></pre></div>
+</div>
+</section>
+<section id="data-inspection" class="level3">
+<h3>Data Inspection</h3>
+<p>The first step is to check the initial structure of the data and identify any missing values. We can use the <code>head</code> function to view the first few rows of the dataset.</p>
+<div class="cell">
+<div class="sourceCode" id="cb5"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Checking initial structure</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data_raw)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 9
+   year country   age sex   bmi_cat       sdi     lab_hba1c diabetes_self_report
+  &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;         &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;               
+1  2015 Brazil     42 woman Obesity       Interm…       4.9 no                  
+2  2015 Brazil     64 woman Normal weight Interm…       6.1 no                  
+3  2015 Brazil     82 woman Obesity       Interm…       4.8 no                  
+4  2015 Brazil     55 woman Normal weight Interm…       6   no                  
+5  2015 Brazil     59 woman Underweight   Interm…       5.6 no                  
+6  2015 Brazil     42 men   Normal weight Interm…       6.3 no                  
+# ℹ 1 more variable: gestational_diabetes &lt;chr&gt;</code></pre>
+</div>
+</div>
+<p>Then, we perform data inspection with the <code>str</code> or <code>glimpse</code> functions to understand the data types and structure of each variable. Both functions provide a concise summary of the dataset, including the number of observations, variables, and their respective data types.</p>
+<div class="cell">
+<div class="sourceCode" id="cb7"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(data_raw)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 500
+Columns: 9
+$ year                 &lt;dbl&gt; 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2015, 2…
+$ country              &lt;chr&gt; &quot;Brazil&quot;, &quot;Brazil&quot;, &quot;Brazil&quot;, &quot;Brazil&quot;, &quot;Brazil&quot;,…
+$ age                  &lt;dbl&gt; 42, 64, 82, 55, 59, 42, 54, 51, 73, 66, 54, 65, 4…
+$ sex                  &lt;chr&gt; &quot;woman&quot;, &quot;woman&quot;, &quot;woman&quot;, &quot;woman&quot;, &quot;woman&quot;, &quot;men…
+$ bmi_cat              &lt;chr&gt; &quot;Obesity&quot;, &quot;Normal weight&quot;, &quot;Obesity&quot;, &quot;Normal we…
+$ sdi                  &lt;chr&gt; &quot;Intermediate&quot;, &quot;Intermediate&quot;, &quot;Intermediate&quot;, &quot;…
+$ lab_hba1c            &lt;dbl&gt; 4.9, 6.1, 4.8, 6.0, 5.6, 6.3, 5.2, 5.8, 6.2, 6.0,…
+$ diabetes_self_report &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;…
+$ gestational_diabetes &lt;chr&gt; &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;no&quot;, &quot;…</code></pre>
+</div>
+</div>
+</section>
+<section id="handling-missing-values" class="level3">
+<h3>Handling Missing Values</h3>
+<p>Next, we check for missing values (NA) with <code>is.na</code> function. This function returns a logical matrix indicating the presence of missing values in the dataset. To count the number of missing values in each column, we can use the <code>colSums</code> function in combination with <code>is.na</code>.</p>
+<div class="cell">
+<div class="sourceCode" id="cb9"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Checking missing values (NA)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(data_raw))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                year              country                  age 
+                   0                    0                    0 
+                 sex              bmi_cat                  sdi 
+                   0                    0                    0 
+           lab_hba1c diabetes_self_report gestational_diabetes 
+                   0                    0                    0 </code></pre>
+</div>
+</div>
+<p>There aren’t missing values in the dataset, but if there were, we could handle them using various strategies such as <code>imputation</code>, <code>removal</code>, or <code>flagging</code>, depending on the nature and extent of the missing data.</p>
+<div class="callout callout-style-simple callout-note callout-titled" title="Question">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Question
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>How would you handle missing values in a dataset? What strategies would you consider?</p>
+</div>
+</div>
+</section>
+<section id="creating-derived-variables" class="level3">
+<h3>Creating Derived Variables</h3>
+<p>Data are usually not in the exact format needed for analysis. Therefore, we create new variables based on existing ones to facilitate the analysis. We are looking at making comparisons between two years to see how diabetes level changes along the time.</p>
+<p>In this case, we create three derived variables:</p>
+<ul>
+<li>Laboratory-defined diabetes (<span class="math inline">\(HbA1c ≥ 6.5\)</span>)</li>
+<li>Total diabetes (self-report OR laboratory, excluding gestational diabetes)</li>
+<li>Age groups (set of age bands to support grouped summaries)</li>
+</ul>
+<p>This step involves using the <code>mutate</code> function from the <code>dplyr</code> package to create new columns based on conditions applied to existing columns. And we use the <code>if_else</code> and <code>case_when</code> functions to define the logic for these new variables.</p>
+<div class="cell">
+<div class="sourceCode" id="cb11"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>df_diabetes <span class="ot">&lt;-</span> data_raw <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Laboratory-defined diabetes</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">diabetes_lab =</span> <span class="fu">if_else</span>(lab_hba1c <span class="sc">&gt;=</span> <span class="fl">6.5</span>, </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;yes&quot;</span>, <span class="st">&quot;no&quot;</span>, </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>                           <span class="at">missing =</span> <span class="cn">NA_character_</span>),</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Total diabetes (self-report OR laboratory, excluding gestational diabetes)</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">diabetes_total =</span> <span class="fu">case_when</span>(</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>      gestational_diabetes <span class="sc">==</span> <span class="st">&quot;yes&quot;</span> <span class="sc">~</span> <span class="st">&quot;no&quot;</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>      diabetes_self_report <span class="sc">==</span> <span class="st">&quot;yes&quot;</span> <span class="sc">|</span> diabetes_lab <span class="sc">==</span> <span class="st">&quot;yes&quot;</span> <span class="sc">~</span> <span class="st">&quot;yes&quot;</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">&quot;no&quot;</span>),</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Age groups</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">age_group =</span> <span class="fu">case_when</span>(</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>      age <span class="sc">&lt;</span> <span class="dv">50</span> <span class="sc">~</span> <span class="st">&quot;40–49&quot;</span>,</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>      age <span class="sc">&lt;</span> <span class="dv">60</span> <span class="sc">~</span> <span class="st">&quot;50–59&quot;</span>,</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">&quot;60+&quot;</span>)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+</div>
+</section>
+</section>
+<section id="exploratory-data-analysis-eda" class="level2">
+<h2>Exploratory data Analysis (EDA)</h2>
+<p><code>Exploratory Data Analysis (EDA)</code> is a crucial step in understanding the underlying patterns, relationships, and distributions within a dataset. It involves using various statistical and graphical techniques to summarize and visualize the data. EDA helps to identify potential issues, outliers, and trends that may inform subsequent analyses or modelling efforts.</p>
+<section id="distribution-plot-for-hba1c-2015-only" class="level3">
+<h3>Distribution plot for HbA1c (2015 only)</h3>
+<p>Let’s visualize the distribution of <code>HbA1c</code> levels for the year 2015 using a <code>histogram</code> combined with a <code>density plot</code>. This will help us understand the spread and central tendency of HbA1c values in that year.</p>
+<div class="cell">
+<div class="sourceCode" id="cb12"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> d2015, </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> lab_hba1c)) <span class="sc">+</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">after_stat</span>(density)), </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">bins =</span> <span class="dv">30</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fill =</span> <span class="st">&quot;lightblue&quot;</span>, </span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">color =</span> <span class="st">&quot;grey70&quot;</span>) <span class="sc">+</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">color =</span> <span class="st">&quot;darkblue&quot;</span>, </span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;HbA1c Distribution (2015)&quot;</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;HbA1c (%)&quot;</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Density&quot;</span>) </span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can see that the distribution of HbA1c levels in 2015 is right-skewed, with a peak around <span class="math inline">\(5-6\%\)</span>. This indicates that most individuals had HbA1c levels within the normal range, but there is a tail of higher values indicating some individuals with elevated HbA1c levels.</p>
+</section>
+<section id="hba1c-distribution-in-both-years" class="level3">
+<h3>HbA1c distribution in both years</h3>
+<p>To compare the distribution of <strong>HbA1c levels between 2015 and 2025</strong>, we can create a <code>density plot</code> that overlays the distributions for both years. This will allow us to visually assess any changes in HbA1c levels over time.</p>
+<div class="cell">
+<div class="sourceCode" id="cb13"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>df_diabetes <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> lab_hba1c, </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="fu">as.factor</span>(year))) <span class="sc">+</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">linewidth =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;HbA1c Distribution — 2015 vs 2025&quot;</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;HbA1c (%)&quot;</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Density&quot;</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">&quot;Year&quot;</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="age-distribution-by-year" class="level3">
+<h3>Age distribution by year</h3>
+<p>To check the age distribution for both years, we can create <code>overlapping histograms</code>. This will help us visualize how the age distribution of the population has changed from 2015 to 2025.</p>
+<div class="cell">
+<div class="sourceCode" id="cb14"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_diabetes,</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>       <span class="at">mapping =</span> <span class="fu">aes</span>(<span class="at">x =</span> age, </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">fill =</span> <span class="fu">factor</span>(year))) <span class="sc">+</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">position =</span> <span class="st">&quot;identity&quot;</span>, </span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">color =</span> <span class="st">&quot;grey80&quot;</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">bins =</span> <span class="dv">30</span>) <span class="sc">+</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Age Distribution: 2015 vs 2025&quot;</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">&quot;Year&quot;</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Age&quot;</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Count&quot;</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="age-boxplots" class="level3">
+<h3>Age Boxplots</h3>
+<p>To further explore the age distribution by <code>year</code> and gender (<code>sex</code>), we can create <code>boxplots</code>. Boxplots provide a visual summary of the distribution, median, quartiles, and potential outliers for age across different years and genders.</p>
+<div class="cell">
+<div class="sourceCode" id="cb15"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_diabetes,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(year), <span class="at">y =</span> age, </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="fu">factor</span>(year))) <span class="sc">+</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">median.color =</span> <span class="st">&quot;grey70&quot;</span>,) <span class="sc">+</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;2015&quot;</span> <span class="ot">=</span> <span class="st">&quot;lightblue&quot;</span>, </span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                             <span class="st">&quot;2025&quot;</span> <span class="ot">=</span> <span class="st">&quot;salmon&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>sex) <span class="sc">+</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Age Distribution by Year&quot;</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Year&quot;</span>,</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Age&quot;</span>,</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">&quot;Year&quot;</span>) </span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This plot shows the age distribution for both years separately for males and females. We can observe any shifts in median age or variability between the two years and across genders. We do not have outliers in this dataset.</p>
+</section>
+</section>
+<section id="summary-statistics" class="level2">
+<h2>Summary Statistics</h2>
+<p>Now that we have explored the data visually, we can compute some summary statistics to quantify key characteristics of the dataset, and compare them across the two years.</p>
+<div class="cell">
+<div class="sourceCode" id="cb16"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>df_diabetes <span class="sc">%&gt;%</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">age_mean =</span> <span class="fu">mean</span>(age, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">age_sd   =</span> <span class="fu">sd</span>(age, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">hba1c_mean =</span> <span class="fu">mean</span>(lab_hba1c, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">hba1c_sd   =</span> <span class="fu">sd</span>(lab_hba1c, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">round</span>(<span class="dv">2</span>) <span class="sc">%&gt;%</span> <span class="co"># Round to 2 decimal places</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">t</span>() <span class="co"># Transpose for better layout</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             [,1]
+n          500.00
+age_mean    56.34
+age_sd      11.86
+hba1c_mean   5.96
+hba1c_sd     0.92</code></pre>
+</div>
+</div>
+<p>The results show the overall mean and standard deviation for age and HbA1c levels across the entire dataset, without stratifying by year.</p>
+<p>The mean age is approximately 56 years, with a standard deviation of about 12 years, indicating a middle-aged population with some variability in age. The mean HbA1c level is around <span class="math inline">\(6.2\%\)</span>, with a standard deviation of about <span class="math inline">\(1.5\%\)</span>, suggesting that, on average, the population has HbA1c levels slightly above the normal range (typically <span class="math inline">\(&lt;5.7\%\)</span> for non-diabetic individuals), with considerable variability.</p>
+<section id="comparisons-by-year" class="level3">
+<h3>Comparisons by Year</h3>
+<p>To compare these statistics by year, we can use the <code>group_by</code> function to group the data by the <code>year</code> variable before summarising.</p>
+<div class="cell">
+<div class="sourceCode" id="cb18"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>df_diabetes <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">%&gt;%</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">age_mean =</span> <span class="fu">mean</span>(age, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">hba1c_mean =</span> <span class="fu">mean</span>(lab_hba1c, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 4
+   year     n age_mean hba1c_mean
+  &lt;dbl&gt; &lt;int&gt;    &lt;dbl&gt;      &lt;dbl&gt;
+1  2015   250     56.7       5.87
+2  2025   250     56.0       6.05</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="prevalence-calculation" class="level2">
+<h2>Prevalence Calculation</h2>
+<p>To calculate the prevalence of diabetes for each year, we can use the <code>group_by</code> and <code>summarise</code> functions to compute the mean of the binary indicator for diabetes status.</p>
+<div class="cell">
+<div class="sourceCode" id="cb20"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>prev_diabetes <span class="ot">&lt;-</span> df_diabetes <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year, diabetes_total) <span class="sc">%&gt;%</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">n =</span> <span class="fu">n</span>(), <span class="at">.groups =</span> <span class="st">&quot;drop&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">%&gt;%</span> </span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">prop =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n))</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>prev_diabetes</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 4
+# Groups:   year [2]
+   year diabetes_total     n  prop
+  &lt;dbl&gt; &lt;chr&gt;          &lt;int&gt; &lt;dbl&gt;
+1  2015 no               212 0.848
+2  2015 yes               38 0.152
+3  2025 no               188 0.752
+4  2025 yes               62 0.248</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb22"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>prev_summary <span class="ot">&lt;-</span> df_diabetes <span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">prev_diabetes =</span> <span class="fu">mean</span>(diabetes_total <span class="sc">==</span> <span class="st">&quot;yes&quot;</span>, </span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">na.rm=</span><span class="cn">TRUE</span>))</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>prev_summary</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 2
+   year prev_diabetes
+  &lt;dbl&gt;         &lt;dbl&gt;
+1  2015         0.152
+2  2025         0.248</code></pre>
+</div>
+</div>
+<section id="prevalence-table-with-confidence-intervals" class="level3">
+<h3>Prevalence Table with Confidence Intervals</h3>
+<p>To calculate prevalence with confidence intervals, we can use the <code>prop.test</code> function within a custom summarise operation.</p>
+<div class="cell">
+<div class="sourceCode" id="cb24"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>prev_ci <span class="ot">&lt;-</span> df_diabetes <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">%&gt;%</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">cases =</span> <span class="fu">sum</span>(diabetes_total <span class="sc">==</span> <span class="st">&quot;yes&quot;</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">prev =</span> cases <span class="sc">/</span> n,</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">ci_lower =</span> <span class="fu">prop.test</span>(cases, n)<span class="sc">$</span>conf.int[<span class="dv">1</span>],</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">ci_upper =</span> <span class="fu">prop.test</span>(cases, n)<span class="sc">$</span>conf.int[<span class="dv">2</span>]</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>prev_ci</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 6
+   year     n cases  prev ci_lower ci_upper
+  &lt;dbl&gt; &lt;int&gt; &lt;int&gt; &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
+1  2015   250    38 0.152    0.111    0.204
+2  2025   250    62 0.248    0.197    0.307</code></pre>
+</div>
+</div>
+</section>
+<section id="visualize-diabetes-prevalence-by-year" class="level3">
+<h3>Visualize diabetes prevalence by year</h3>
+<p>To visualize diabetes prevalence by year, we can create a bar plot with the <code>errorbars</code> representing the confidence intervals. This plot will show the proportion of individuals with diabetes for each year.</p>
+<div class="cell">
+<div class="sourceCode" id="cb26"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(prev_ci, </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(year), </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> prev, </span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="fu">factor</span>(year))) <span class="sc">+</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbar</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> ci_lower, </span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>                    <span class="at">ymax =</span> ci_upper), </span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">width =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;2015&quot;</span> <span class="ot">=</span> <span class="st">&quot;lightblue&quot;</span>, </span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>                               <span class="st">&quot;2025&quot;</span> <span class="ot">=</span> <span class="st">&quot;salmon&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Diabetes Prevalence by Year&quot;</span>,</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Year&quot;</span>,</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Prevalence (%)&quot;</span>,</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">&quot;Year&quot;</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This barplot shows the prevalence of diabetes for each year, along with the 95% confidence intervals. We can visually assess any changes in prevalence between 2015 and 2025.</p>
+</section>
+<section id="interaction" class="level3">
+<h3>Interaction</h3>
+<p>To explore the <code>interaction between gender, age, and diabetes status</code>, we can create a <code>faceted bar plot</code>. This plot will show the distribution of diabetes status across different age groups, separated by gender.</p>
+<div class="cell">
+<div class="sourceCode" id="cb27"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_diabetes, </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> age_group, </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> diabetes_total)) <span class="sc">+</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">&quot;fill&quot;</span>,</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> <span class="st">&quot;white&quot;</span>,</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">linewidth =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;yes&quot;</span> <span class="ot">=</span> <span class="st">&quot;lightblue&quot;</span>, </span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>                               <span class="st">&quot;no&quot;</span> <span class="ot">=</span> <span class="st">&quot;salmon&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Diabetes Status by Age Group and Gender&quot;</span>,</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Age Group&quot;</span>,</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Proportion&quot;</span>,</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">&quot;Diabetes Status&quot;</span>) <span class="sc">+</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>sex)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Interaction between gender, age and diabetes</p>
+<div class="cell">
+<div class="sourceCode" id="cb28"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_diabetes, </span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> diabetes_total, <span class="at">y =</span> age, </span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> sex)) <span class="sc">+</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">median.color =</span> <span class="st">&quot;gray40&quot;</span>,</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">outlier.color =</span> <span class="st">&quot;gray40&quot;</span>) <span class="sc">+</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;men&quot;</span> <span class="ot">=</span> <span class="st">&quot;lightblue&quot;</span>,</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>                               <span class="st">&quot;woman&quot;</span> <span class="ot">=</span> <span class="st">&quot;salmon&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Age Distribution by Diabetes Status and Gender&quot;</span>,</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Diabetes&quot;</span>,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Age&quot;</span>,</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">&quot;Gender&quot;</span>) </span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Here, we can observe how the proportion of individuals with diabetes varies across age groups for both men and women. Additionally, the boxplot shows the age distribution for individuals with and without diabetes, separated by gender.</p>
+</section>
+</section>
+<section id="qualitative-statistical-inference" class="level2">
+<h2>Qualitative Statistical Inference</h2>
+<p>To answer our research questions regarding diabetes prevalence, we will use the <strong>Chi-Square Test of Independence</strong>. This test is appropriate for categorical data and helps us determine whether there is a significant association between two categorical variables.</p>
+<blockquote>
+<p>Question 1: The prevalence of diabetes changed significantly between 2015 and 2025?</p>
+</blockquote>
+<section id="chi-square-test-for-year-and-diabetes-status" class="level3">
+<h3>Chi-square Test for Year and Diabetes Status</h3>
+<div class="cell">
+<div class="sourceCode" id="cb29"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>table_year <span class="ot">&lt;-</span> <span class="fu">table</span>(df_diabetes<span class="sc">$</span>year, </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>                    df_diabetes<span class="sc">$</span>diabetes_total)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>table_year</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      
+        no yes
+  2015 212  38
+  2025 188  62</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb31"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>chi_year <span class="ot">&lt;-</span> <span class="fu">chisq.test</span>(table_year)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>chi_year</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Pearson&#39;s Chi-squared test with Yates&#39; continuity correction
+
+data:  table_year
+X-squared = 6.6125, df = 1, p-value = 0.01013</code></pre>
+</div>
+</div>
+<p>The p-value is below 0.05, so we reject the null hypothesis and conclude that prevalence differs between 2015 and 2025 in this dataset.</p>
+<div class="cell">
+<div class="sourceCode" id="cb33"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>chi_year<span class="sc">$</span>expected</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      
+        no yes
+  2015 200  50
+  2025 200  50</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb35"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardized Residuals</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>res_year <span class="ot">&lt;-</span> chi_year<span class="sc">$</span>stdres</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>res_year</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      
+              no       yes
+  2015  2.683282 -2.683282
+  2025 -2.683282  2.683282</code></pre>
+</div>
+</div>
+<blockquote>
+<p>Question 2: Will the prevalence of diabetes differ significantly between countries in the year 2025?</p>
+</blockquote>
+</section>
+<section id="chi-square-test-for-country-and-diabetes-status-in-2025" class="level3">
+<h3>Chi-square Test for Country and Diabetes Status in 2025</h3>
+<div class="cell">
+<div class="sourceCode" id="cb37"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>df_diabetes_2025 <span class="ot">&lt;-</span> df_diabetes <span class="sc">%&gt;%</span> <span class="fu">filter</span>(year <span class="sc">==</span> <span class="dv">2025</span>)</span></code></pre></div>
+</div>
+<p>Contingency table for countries and diabetes</p>
+<div class="cell">
+<div class="sourceCode" id="cb38"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>tab_2025 <span class="ot">&lt;-</span> <span class="fu">table</span>(df_diabetes_2025<span class="sc">$</span>country,</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>                  df_diabetes_2025<span class="sc">$</span>diabetes_total)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>tab_2025</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              
+               no yes
+  Brazil       42  25
+  China        39  11
+  Italy        40  10
+  South Africa 27   6
+  USA          40  10</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb40"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>chi_2025 <span class="ot">&lt;-</span> <span class="fu">chisq.test</span>(tab_2025)</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>chi_2025</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Pearson&#39;s Chi-squared test
+
+data:  tab_2025
+X-squared = 7.8461, df = 4, p-value = 0.09738</code></pre>
+</div>
+</div>
+<p>The p-value is greater than 0.05. Therefore, we fail to reject the null hypothesis and conclude that there is no statistically significant difference in diabetes prevalence between countries in 2025.</p>
+<div class="cell">
+<div class="sourceCode" id="cb42"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>chi_2025<span class="sc">$</span>expected</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              
+                   no    yes
+  Brazil       50.384 16.616
+  China        37.600 12.400
+  Italy        37.600 12.400
+  South Africa 24.816  8.184
+  USA          37.600 12.400</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb44"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardized Residuals</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> chi_2025<span class="sc">$</span>stdres</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(residuals, <span class="dv">2</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              
+                  no   yes
+  Brazil       -2.77  2.77
+  China         0.51 -0.51
+  Italy         0.88 -0.88
+  South Africa  0.94 -0.94
+  USA           0.88 -0.88</code></pre>
+</div>
+</div>
+<p>Identify where the greatest contribution lies:</p>
+<div class="cell">
+<div class="sourceCode" id="cb46"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mosaicplot</span>(tab_2025,</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">main =</span> <span class="st">&quot;Mosaic Plot — Diabetes by Country (2025)&quot;</span>,</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> <span class="cn">TRUE</span>, <span class="at">las =</span> <span class="dv">1</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-note callout-titled" title="Interpretation">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Interpretation
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Interpretation: We fail to reject the null hypothesis. There is no statistically significant evidence that diabetes prevalence differs between countries in 2025 at the 5% significance level.</p>
+<p>Although some countries show larger deviations from expected counts, these differences are not strong enough, overall, to conclude that prevalence differs significantly across countries.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="k-prototypes-clustering" class="level2">
+<h2>K-prototypes Clustering</h2>
+<p>In this final analytical step, we explore whether individuals in the 2025 dataset can be grouped into distinct profiles based on a combination of clinical and demographic characteristics. Rather than focusing on hypothesis testing, this section introduces unsupervised learning as an exploratory tool to uncover structure in the data.</p>
+<p>Clustering is particularly useful in public health settings when the goal is to:</p>
+<pre><code>- identify subgroups with similar risk profiles,
+- explore heterogeneity within a population,
+- generate hypotheses for targeted interventions.</code></pre>
+<p>Because our dataset contains both numeric and categorical variables, we use the <code>k-prototypes algorithm</code>, which is specifically designed for mixed-type data.</p>
+<blockquote>
+<p>Why k-prototypes?</p>
+</blockquote>
+<p>Traditional clustering methods such as <code>k-means</code> only work with numeric variables, while <code>k-modes</code> are limited to categorical data. The <code>k-prototypes</code> algorithm combines both approaches:</p>
+<pre><code>- Euclidean distance is used for numeric variables,
+- matching dissimilarity is used for categorical variables,
+- a tuning parameter ($\lambda$) balances the contribution of each type.</code></pre>
+<p>This makes k-prototypes well suited for health datasets that mix laboratory values (e.g. <code>HbA1c</code>) with demographic or clinical categories (e.g. <code>sex</code>, <code>BMI group</code>, <code>age band</code>).</p>
+<section id="data-preparation-for-clustering" class="level3">
+<h3>Data Preparation for Clustering</h3>
+<p>We restrict the clustering analysis to observations from 2025, as the aim is to characterise the most recent population snapshot rather than temporal change.</p>
+<div class="cell">
+<div class="sourceCode" id="cb49"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(df_diabetes_2025)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [250 × 12] (S3: tbl_df/tbl/data.frame)
+ $ year                : num [1:250] 2025 2025 2025 2025 2025 ...
+ $ country             : chr [1:250] &quot;Brazil&quot; &quot;Brazil&quot; &quot;Brazil&quot; &quot;Brazil&quot; ...
+ $ age                 : num [1:250] 44 83 45 48 48 47 55 66 57 66 ...
+ $ sex                 : chr [1:250] &quot;woman&quot; &quot;men&quot; &quot;woman&quot; &quot;men&quot; ...
+ $ bmi_cat             : chr [1:250] &quot;Normal weight&quot; &quot;Overweight&quot; &quot;Obesity&quot; &quot;Normal weight&quot; ...
+ $ sdi                 : chr [1:250] &quot;Intermediate&quot; &quot;Intermediate&quot; &quot;Intermediate&quot; &quot;Intermediate&quot; ...
+ $ lab_hba1c           : num [1:250] 6 6.1 5.8 5.9 5.3 6.3 8.8 5.4 5.3 6.4 ...
+ $ diabetes_self_report: chr [1:250] &quot;no&quot; &quot;no&quot; &quot;no&quot; &quot;yes&quot; ...
+ $ gestational_diabetes: chr [1:250] &quot;no&quot; &quot;no&quot; &quot;no&quot; &quot;no&quot; ...
+ $ diabetes_lab        : chr [1:250] &quot;no&quot; &quot;no&quot; &quot;no&quot; &quot;no&quot; ...
+ $ diabetes_total      : chr [1:250] &quot;no&quot; &quot;no&quot; &quot;no&quot; &quot;yes&quot; ...
+ $ age_group           : chr [1:250] &quot;40–49&quot; &quot;60+&quot; &quot;40–49&quot; &quot;40–49&quot; ...</code></pre>
+</div>
+</div>
+<p>Before clustering, variables must be correctly typed. Numeric variables should remain numeric, while categorical variables must be encoded as factors.</p>
+<div class="cell">
+<div class="sourceCode" id="cb51"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>cluster_data_2025 <span class="ot">&lt;-</span> df_diabetes_2025 <span class="sc">%&gt;%</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>year)<span class="sc">%&gt;%</span></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.character), as.factor))</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(cluster_data_2025)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [250 × 11] (S3: tbl_df/tbl/data.frame)
+ $ country             : Factor w/ 5 levels &quot;Brazil&quot;,&quot;China&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+ $ age                 : num [1:250] 44 83 45 48 48 47 55 66 57 66 ...
+ $ sex                 : Factor w/ 2 levels &quot;men&quot;,&quot;woman&quot;: 2 1 2 1 1 2 2 1 1 2 ...
+ $ bmi_cat             : Factor w/ 4 levels &quot;Normal weight&quot;,..: 1 3 2 1 2 2 2 3 2 2 ...
+ $ sdi                 : Factor w/ 3 levels &quot;High&quot;,&quot;Intermediate&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
+ $ lab_hba1c           : num [1:250] 6 6.1 5.8 5.9 5.3 6.3 8.8 5.4 5.3 6.4 ...
+ $ diabetes_self_report: Factor w/ 2 levels &quot;no&quot;,&quot;yes&quot;: 1 1 1 2 1 2 1 1 1 2 ...
+ $ gestational_diabetes: Factor w/ 2 levels &quot;no&quot;,&quot;yes&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+ $ diabetes_lab        : Factor w/ 2 levels &quot;no&quot;,&quot;yes&quot;: 1 1 1 1 1 1 2 1 1 1 ...
+ $ diabetes_total      : Factor w/ 2 levels &quot;no&quot;,&quot;yes&quot;: 1 1 1 2 1 2 2 1 1 2 ...
+ $ age_group           : Factor w/ 3 levels &quot;40–49&quot;,&quot;50–59&quot;,..: 1 3 1 1 1 1 2 3 2 3 ...</code></pre>
+</div>
+</div>
+<p>At this stage, the dataset contains a mixture of numeric and categorical features suitable for k-prototypes clustering.</p>
+</section>
+<section id="checking-redundancy-and-association-between-variables" class="level3">
+<h3>Checking Redundancy and Association Between Variables</h3>
+<p>Clustering can be distorted if highly redundant variables are included. We therefore assess association within numeric variables and dependence among categorical variables.</p>
+<section id="numeric-correlation-pearson" class="level4">
+<h4>Numeric Correlation (Pearson)</h4>
+<div class="cell">
+<div class="sourceCode" id="cb53"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>cluster_data_2025 <span class="sc">%&gt;%</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select_if</span>(is.numeric) <span class="sc">%&gt;%</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cor</span>()</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                  age   lab_hba1c
+age       1.000000000 0.008397291
+lab_hba1c 0.008397291 1.000000000</code></pre>
+</div>
+</div>
+<p><code>Age</code> and <code>HbA1c</code> show little correlation, so both can be retained. However, <code>age_group</code> is derived directly from age, so age is removed later to avoid duplicating the same information. So we will drop <code>age</code> from the clustering dataset.</p>
+<div class="cell">
+<div class="sourceCode" id="cb55"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>features_num <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="co">#&quot;age&quot;, </span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;lab_hba1c&quot;</span>)</span></code></pre></div>
+</div>
+</section>
+<section id="categorical-association-cramérs-v" class="level4">
+<h4>Categorical Association (Cramér’s V)</h4>
+<p>For categorical variables, we use <code>Cramér’s V</code>, a normalized measure derived from the <code>chi-square</code> statistic:</p>
+<p><span id="eq-cramers_v"><span class="math display">\[
+V = \sqrt{\frac{\chi^2 / n}{\min(k - 1, r - 1)}}
+\tag{1}\]</span></span></p>
+<p>Where:<br />
+- (<span class="math inline">\(\chi^2\)</span>) is the Chi-square statistic<br />
+- (<span class="math inline">\(n\)</span>) is the total number of observations<br />
+- (<span class="math inline">\(k\)</span>) is the number of categories in one variable<br />
+- (<span class="math inline">\(r\)</span>) is the number of categories in the other variable</p>
+<p>Cramer V is a measure of association between two nominal categorical variables. It ranges from 0 (no association) to 1 (perfect association). It is based on the Chi-square statistic and is useful for understanding the strength of association between categorical variables.</p>
+<p>The inventor of Cramér’s V, Harald Cramér, did not specify strict cut-offs for interpreting the values. However, in practice, researchers often use the following guidelines to interpret the strength of association:</p>
+<ul>
+<li>0 to 0.1: Negligible association</li>
+<li>0.1 to 0.3: Weak association</li>
+<li>0.3 to 0.5: Moderate association</li>
+<li>0.5 to 1.0: Strong association</li>
+</ul>
+<p>In this case, we will identify pairs of categorical variables with <strong>Cramér’s V less than or equal to 0.5</strong>, indicating weak to moderate associations.</p>
+<p>We first examine the relationship between <code>country</code> and <code>sdi</code>, which are conceptually related using the <code>assocstats()</code> function from the <code>vcd</code> package:</p>
+<div class="cell">
+<div class="sourceCode" id="cb56"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>vcd<span class="sc">::</span><span class="fu">assocstats</span>(<span class="fu">table</span>(cluster_data_2025<span class="sc">$</span>country, cluster_data_2025<span class="sc">$</span>sdi))<span class="sc">$</span>cramer</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8998341</code></pre>
+</div>
+</div>
+<p>Or, we can even use the <code>CramerV()</code> function from the <code>DescTools</code> package:</p>
+<div class="cell">
+<div class="sourceCode" id="cb58"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>DescTools<span class="sc">::</span><span class="fu">CramerV</span>(cluster_data_2025<span class="sc">$</span>country, cluster_data_2025<span class="sc">$</span>sdi)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.8998341</code></pre>
+</div>
+</div>
+<p>Both packages show a value of 0.9, indicating a high association between <code>country</code> and <code>SDI.</code> The high association suggests that including both variables may overweight the same socioeconomic information. However, association with other categorical variables is weaker, so this decision is not automatic and requires judgement.</p>
+<p><strong>Test all pairs of categorical features</strong></p>
+<p>To examine this systematically, we compute Cramér’s V for all pairs of categorical variables setting up a function to compute Cramér’s V for any two categorical variables:</p>
+<div class="cell">
+<div class="sourceCode" id="cb60"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>cramers_v <span class="ot">&lt;-</span> <span class="cf">function</span>(x, y) <span class="fu">CramerV</span>(<span class="fu">table</span>(x, y))</span></code></pre></div>
+</div>
+<p>Extract the names of all categorical features:</p>
+<div class="cell">
+<div class="sourceCode" id="cb61"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>cluster_data_2025 <span class="sc">%&gt;%</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">where</span>(is.factor)) <span class="sc">%&gt;%</span></span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>()</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] &quot;country&quot;              &quot;sex&quot;                  &quot;bmi_cat&quot;             
+[4] &quot;sdi&quot;                  &quot;diabetes_self_report&quot; &quot;gestational_diabetes&quot;
+[7] &quot;diabetes_lab&quot;         &quot;diabetes_total&quot;       &quot;age_group&quot;           </code></pre>
+</div>
+</div>
+<p>We focus on a subset of categorical features for clarity:</p>
+<div class="cell">
+<div class="sourceCode" id="cb63"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>features_cat <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;sex&quot;</span>, </span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;bmi_cat&quot;</span>, </span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>                  <span class="co">#&quot;country&quot;, </span></span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>                  <span class="co">#&quot;sdi&quot;,</span></span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;age_group&quot;</span>)</span></code></pre></div>
+</div>
+<p>Then we use the <code>expand_grid</code> function to create all possible pairs of categorical features, compute Cramér’s V for each pair, and filter for weak to moderate associations (Cramér’s V &lt;= 0.5):</p>
+<div class="cell">
+<div class="sourceCode" id="cb64"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">expand_grid</span>(<span class="at">feature1 =</span> features_cat,</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>            <span class="at">feature2 =</span> features_cat) <span class="sc">%&gt;%</span></span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(feature1 <span class="sc">&lt;</span> feature2) <span class="sc">%&gt;%</span> <span class="co"># keep unique pairs only</span></span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cramers_v =</span> <span class="fu">cramers_v</span>(</span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>    cluster_data_2025[[feature1]],</span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>    cluster_data_2025[[feature2]])) <span class="sc">%&gt;%</span></span>
+<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Filter for Cramér&#39;s V &lt;= 0.5 to identify weak to moderate associations</span></span>
+<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(cramers_v <span class="sc">&lt;=</span> <span class="fl">0.5</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(cramers_v)) <span class="ot">-&gt;</span> cramers_df</span>
+<span id="cb64-11"><a href="#cb64-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb64-12"><a href="#cb64-12" aria-hidden="true" tabindex="-1"></a>cramers_df</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 3
+# Rowwise: 
+  feature1  feature2 cramers_v
+  &lt;chr&gt;     &lt;chr&gt;        &lt;dbl&gt;
+1 bmi_cat   sex         0.124 
+2 age_group sex         0.0698
+3 age_group bmi_cat     0.0578</code></pre>
+</div>
+</div>
+<p>This confirms that the retained categorical variables are not strongly redundant.</p>
+</section>
+</section>
+<section id="data-quality-checks-outliers-and-rare-categories" class="level3">
+<h3>Data Quality Checks: Outliers and Rare Categories</h3>
+<p>Before clustering, we check:</p>
+<pre><code>- outliers in numeric variables,
+- imbalanced categories in categorical variables.</code></pre>
+<div class="cell">
+<div class="sourceCode" id="cb67"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>cluster_data_2025 <span class="sc">%&gt;%</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(lab_hba1c) <span class="sc">%&gt;%</span></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> lab_hba1c)) </span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-42-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can see the presence of outliers in <code>lab_hba1c</code> variable. To handle these outliers , we can perform a technique called <strong>winsorization</strong>, which involves capping extreme values to reduce their impact on the analysis. In this case, we will cap the values at the 1st and 99th percentiles.</p>
+<p>The extreme values in <code>lab_hba1c</code> can disproportionately influence the clustering results.</p>
+<div class="cell">
+<div class="sourceCode" id="cb68"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(cluster_data_2025<span class="sc">$</span>lab_hba1c)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  4.800   5.400   5.800   6.052   6.300   8.900 </code></pre>
+</div>
+</div>
+<p>The maximum value of <code>lab_hba1c</code> before winsorization is 8.9.</p>
+<p>Then we calculate the upper whisker value using the interquartile range (IQR) method.</p>
+<div class="cell">
+<div class="sourceCode" id="cb70"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>Q1 <span class="ot">&lt;-</span> <span class="fu">quantile</span>(cluster_data_2025<span class="sc">$</span>lab_hba1c, <span class="fl">0.25</span>)</span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>Q3 <span class="ot">&lt;-</span> <span class="fu">quantile</span>(cluster_data_2025<span class="sc">$</span>lab_hba1c, <span class="fl">0.75</span>)</span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>IQR_val <span class="ot">&lt;-</span> Q3 <span class="sc">-</span> Q1</span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>upper_whisker <span class="ot">&lt;-</span> Q3 <span class="sc">+</span> <span class="fl">1.5</span> <span class="sc">*</span> IQR_val</span></code></pre></div>
+</div>
+<p>In summary, winsorizing the <code>lab_hba1c</code> variable helps to mitigate the influence of extreme outliers on the clustering results.</p>
+<section id="winsorization-of-lab_hba1c" class="level4">
+<h4>Winsorization of lab_hba1c</h4>
+<div class="cell">
+<div class="sourceCode" id="cb71"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save the original values</span></span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>cluster_data_2025<span class="sc">$</span>lab_hba1c_original <span class="ot">&lt;-</span> cluster_data_2025<span class="sc">$</span>lab_hba1c</span></code></pre></div>
+</div>
+<p>We use <code>pmin()</code> function to force the <code>lab_hba1c</code> outliers to equal the <code>upper whisker value</code>, it selects the minimum out of: the existing lab_hba1c value and the upper whisker value.</p>
+<div class="cell">
+<div class="sourceCode" id="cb72"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>cluster_data_2025<span class="sc">$</span>lab_hba1c <span class="ot">&lt;-</span> <span class="fu">pmin</span>(cluster_data_2025<span class="sc">$</span>lab_hba1c, upper_whisker)</span></code></pre></div>
+</div>
+<p>After winsorization - where did the outliers go?</p>
+<div class="cell">
+<div class="sourceCode" id="cb73"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="fu">boxplot</span>(cluster_data_2025<span class="sc">$</span>lab_hba1c, </span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> <span class="st">&quot;lab_hba1c – After Winsorization&quot;</span>,</span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">horizontal =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-47-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="unbalanced-categorical-features" class="level4">
+<h4>Unbalanced categorical features</h4>
+<p>We check the distribution of categories in each categorical variable to ensure there are no extremely rare categories that could distort clustering.</p>
+<div class="cell">
+<div class="sourceCode" id="cb74"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>cat_balance <span class="ot">&lt;-</span> cluster_data_2025 <span class="sc">%&gt;%</span></span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select_if</span>(is.factor) <span class="sc">%&gt;%</span></span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">everything</span>(),</span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">&quot;variable&quot;</span>,</span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">&quot;category&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(variable, category, <span class="at">name =</span> <span class="st">&quot;n&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variable) <span class="sc">%&gt;%</span></span>
+<span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pct =</span> <span class="fu">round</span>(<span class="dv">100</span> <span class="sc">*</span> n <span class="sc">/</span> <span class="fu">sum</span>(n), <span class="dv">1</span>),</span>
+<span id="cb74-9"><a href="#cb74-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">is_rare =</span> (n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">&lt;</span> <span class="fl">0.05</span> ) <span class="sc">%&gt;%</span></span>
+<span id="cb74-10"><a href="#cb74-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb74-11"><a href="#cb74-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(variable, <span class="fu">desc</span>(n))</span>
+<span id="cb74-12"><a href="#cb74-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-13"><a href="#cb74-13" aria-hidden="true" tabindex="-1"></a>cat_balance</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 25 × 5
+   variable  category          n   pct is_rare
+   &lt;chr&gt;     &lt;fct&gt;         &lt;int&gt; &lt;dbl&gt; &lt;lgl&gt;  
+ 1 age_group 40–49            88  35.2 FALSE  
+ 2 age_group 50–59            87  34.8 FALSE  
+ 3 age_group 60+              75  30   FALSE  
+ 4 bmi_cat   Normal weight   102  40.8 FALSE  
+ 5 bmi_cat   Overweight       78  31.2 FALSE  
+ 6 bmi_cat   Obesity          46  18.4 FALSE  
+ 7 bmi_cat   Underweight      24   9.6 FALSE  
+ 8 country   Brazil           67  26.8 FALSE  
+ 9 country   China            50  20   FALSE  
+10 country   Italy            50  20   FALSE  
+# ℹ 15 more rows</code></pre>
+</div>
+</div>
+<p>No categories are extremely rare (i.e., less than 5% of total), so we can retain all categorical variables for clustering.</p>
+</section>
+<section id="scaling-numeric-variables-and-final-variable-selection" class="level4">
+<h4>Scaling Numeric Variables and Final Variable Selection</h4>
+<p>Why scaling? Scaling numeric variables ensures that they contribute equally to the distance calculations used in clustering. Without scaling, variables with larger ranges can dominate the distance metric, leading to biased clustering results.</p>
+<p>We then retain the final set of variables for clustering and standardise the numeric input.</p>
+<div class="cell">
+<div class="sourceCode" id="cb76"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>cluster_data_2025 <span class="ot">&lt;-</span> cluster_data_2025 <span class="sc">%&gt;%</span></span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(lab_hba1c,</span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>         sex,</span>
+<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>         age_group,</span>
+<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>         bmi_cat) <span class="sc">%&gt;%</span></span>
+<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># here is where scaling happens</span></span>
+<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">lab_hba1c =</span> <span class="fu">as.numeric</span>(<span class="fu">scale</span>(lab_hba1c)))</span></code></pre></div>
+</div>
+</section>
+</section>
+<section id="choosing-the-number-of-clusters" class="level3">
+<h3>Choosing the Number of Clusters</h3>
+<p>We use the elbow method, examining how within-cluster variation decreases as the number of clusters increases. What we do here is <code>run the k-prototypes algorithm</code> for a <code>range of cluster numbers (k = 2 to 10)</code> and record the total <code>within-cluster sum of squares (WSS)</code> for each k. We use the <code>map_dbl</code> function from the <code>purrr</code> package to map over the range of k values and store the WSS results. And the <code>kproto</code> function from the <code>clustMixType</code> package to perform k-prototypes clustering on the prepared dataset for 2025.</p>
+<div class="cell">
+<div class="sourceCode" id="cb77"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>kproto_wss_2025 <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map_dbl</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">10</span>, <span class="cf">function</span>(k) {</span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>  kpres <span class="ot">&lt;-</span> <span class="fu">kproto</span>(cluster_data_2025,</span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>                  k, </span>
+<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">verbose =</span> <span class="cn">FALSE</span>) </span>
+<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>  kpres<span class="sc">$</span>tot.withinss</span>
+<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+</div>
+<p>And plot the WSS values to identify the “elbow” point where adding more clusters yields diminishing returns in reducing WSS.</p>
+<div class="cell">
+<div class="sourceCode" id="cb78"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">10</span>, kproto_wss_2025, <span class="at">type =</span> <span class="st">&quot;b&quot;</span>,</span>
+<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&quot;Number of clusters (k)&quot;</span>,</span>
+<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Total within-cluster sum of squares&quot;</span>,</span>
+<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Elbow Method (2025)&quot;</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-51-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Based on the elbow plot, we choose <code>k = 5</code> as the optimal number of clusters.</p>
+<div class="cell">
+<div class="sourceCode" id="cb79"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>optimal_k <span class="ot">&lt;-</span> <span class="dv">5</span>  <span class="co"># chosen from elbow</span></span></code></pre></div>
+</div>
+</section>
+<section id="run-k-prototypes-clustering" class="level3">
+<h3>Run K-prototypes Clustering</h3>
+<p>We use the <code>kproto</code> function again, but this time specifying the <code>optimal number of clusters (k = 5)</code> determined from the elbow method. We set a random seed for reproducibility, and configure the algorithm to run with 25 random starts and a maximum of 25 iterations per start to ensure convergence.</p>
+<div class="cell">
+<div class="sourceCode" id="cb80"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123456789</span>)</span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>kp_model <span class="ot">&lt;-</span> <span class="fu">kproto</span>(cluster_data_2025, </span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">k =</span> optimal_k,</span>
+<span id="cb80-4"><a href="#cb80-4" aria-hidden="true" tabindex="-1"></a>                   <span class="at">nstart =</span> <span class="dv">25</span>,</span>
+<span id="cb80-5"><a href="#cb80-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">iter.max =</span> <span class="dv">25</span>,</span>
+<span id="cb80-6"><a href="#cb80-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">lambda =</span> <span class="cn">NULL</span>,</span>
+<span id="cb80-7"><a href="#cb80-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">verbose =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+</div>
+<p>Add a cluster number (1 to 5) to each datapoint in the dataset:</p>
+<div class="cell">
+<div class="sourceCode" id="cb81"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>cluster_data_2025<span class="sc">$</span>cluster <span class="ot">&lt;-</span> kp_model<span class="sc">$</span>cluster</span></code></pre></div>
+</div>
+<section id="interpreting-the-clusters" class="level4">
+<h4>Interpreting the Clusters</h4>
+<p>Key diagnostic outputs help assess clustering quality and interpretability:</p>
+<div class="cell">
+<div class="sourceCode" id="cb82"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>kp_model<span class="sc">$</span>size <span class="co"># Number of points in each cluster</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>clusters
+ 1  2  3  4  5 
+48 50 58 42 52 </code></pre>
+</div>
+</div>
+<p>Lambda balances numerical (Euclidean) vs categorical (matching) distance:</p>
+<p><span id="eq-lambda"><span class="math display">\[
+\lambda =\sum{\frac{\text{(std_dev of numerical features)}}{\text{(n. numerical features)}}}
+\tag{2}\]</span></span></p>
+<p>Calculate lambda manually to verify:</p>
+<div class="cell">
+<div class="sourceCode" id="cb84"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>kp_model<span class="sc">$</span>lambda <span class="co"># Lambda value used</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.614542</code></pre>
+</div>
+</div>
+<p>The <code>withinss</code> values tell us how compact each cluster is. Lower is better, it means the patients in that cluster are more similar to each other.</p>
+<div class="cell">
+<div class="sourceCode" id="cb86"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>kp_model<span class="sc">$</span>withinss</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]  72.60207  58.85312  94.89224 110.92214  85.94492</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb88"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare cluster compactness</span></span>
+<span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a><span class="fu">barplot</span>(kp_model<span class="sc">$</span>withinss, </span>
+<span id="cb88-3"><a href="#cb88-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">names.arg =</span> <span class="fu">paste</span>(<span class="st">&quot;Cluster&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>),</span>
+<span id="cb88-4"><a href="#cb88-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">ylab =</span> <span class="st">&quot;Within-cluster SS&quot;</span>,</span>
+<span id="cb88-5"><a href="#cb88-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">main =</span> <span class="st">&quot;Cluster Compactness (lower = more compact)&quot;</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-58-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The total <code>within-cluster sum of squares</code> represents the overall compactness. When we did the elbow plot, we were looking at how this total changes as we add more clusters. We want tight clusters without over-fragmenting our data.</p>
+<div class="cell">
+<div class="sourceCode" id="cb89"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a>kp_model<span class="sc">$</span>tot.withinss</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 423.2145</code></pre>
+</div>
+</div>
+<p>The cluster centres for categorical variables represent modal categories, while numeric centres reflect mean values.</p>
+<div class="cell">
+<div class="sourceCode" id="cb91"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a>kp_model<span class="sc">$</span>centers</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    lab_hba1c   sex age_group       bmi_cat
+1 -0.71955321   men     50–59    Overweight
+2 -0.28653701 woman     50–59 Normal weight
+3 -0.51599890   men       60+ Normal weight
+4  1.84526774   men     40–49 Normal weight
+5  0.02484799 woman     40–49    Overweight</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb93"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>cluster_data_2025 <span class="sc">%&gt;%</span></span>
+<span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cluster) <span class="sc">%&gt;%</span></span>
+<span id="cb93-3"><a href="#cb93-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb93-4"><a href="#cb93-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">n</span>(),</span>
+<span id="cb93-5"><a href="#cb93-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">hba1c =</span> <span class="fu">round</span>(<span class="fu">mean</span>(lab_hba1c), <span class="dv">1</span>),</span>
+<span id="cb93-6"><a href="#cb93-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">sex =</span> <span class="fu">names</span>(<span class="fu">which.max</span>(<span class="fu">table</span>(sex))),</span>
+<span id="cb93-7"><a href="#cb93-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">bmi_cat =</span> <span class="fu">names</span>(<span class="fu">which.max</span>(<span class="fu">table</span>(bmi_cat))),</span>
+<span id="cb93-8"><a href="#cb93-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">age =</span> <span class="fu">names</span>(<span class="fu">which.max</span>(<span class="fu">table</span>(age_group)))</span>
+<span id="cb93-9"><a href="#cb93-9" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 6
+  cluster     n hba1c sex   bmi_cat       age  
+    &lt;int&gt; &lt;int&gt; &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;         &lt;chr&gt;
+1       1    48  -0.7 men   Overweight    50–59
+2       2    50  -0.3 woman Normal weight 50–59
+3       3    58  -0.5 men   Normal weight 60+  
+4       4    42   1.8 men   Normal weight 40–49
+5       5    52   0   woman Overweight    40–49</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="external-validation-using-diabetes-status" class="level3">
+<h3>External Validation Using Diabetes Status</h3>
+<p>Although clustering is unsupervised, we can validate the result externally by checking whether clusters align with known diabetes status.</p>
+<p>Add diabetes status back to cluster data:</p>
+<div class="cell">
+<div class="sourceCode" id="cb95"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>cluster_data_2025<span class="sc">$</span>diabetes <span class="ot">&lt;-</span> df_diabetes_2025<span class="sc">$</span>diabetes_total</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb96"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chisq.test</span>(<span class="fu">table</span>(cluster_data_2025<span class="sc">$</span>cluster, cluster_data_2025<span class="sc">$</span>diabetes))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Pearson&#39;s Chi-squared test
+
+data:  table(cluster_data_2025$cluster, cluster_data_2025$diabetes)
+X-squared = 138.5, df = 4, p-value &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb98"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb98-1"><a href="#cb98-1" aria-hidden="true" tabindex="-1"></a><span class="fu">assocstats</span>(<span class="fu">table</span>(cluster_data_2025<span class="sc">$</span>cluster, cluster_data_2025<span class="sc">$</span>diabetes))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                    X^2 df P(&gt; X^2)
+Likelihood Ratio 130.89  4        0
+Pearson          138.50  4        0
+
+Phi-Coefficient   : NA 
+Contingency Coeff.: 0.597 
+Cramer&#39;s V        : 0.744 </code></pre>
+</div>
+</div>
+<p>Practical implication for your clustering workflow:</p>
+<p>A Cramér’s V of 0.7443093 strongly suggests these two categorical variables carry overlapping information. If both are included in clustering, the algorithm may effectively <em>double count</em> the same underlying structure, increasing the weight of that dimension in cluster formation.</p>
+</section>
+<section id="cluster-quality-silhouette-analysis" class="level3">
+<h3>Cluster Quality: Silhouette Analysis</h3>
+<p>Silhouette analysis measures how similar an object is to its own cluster compared to other clusters. The silhouette value ranges from -1 to 1, where a value close to 1 indicates that the object is well clustered, a value of 0 indicates that the object is on or very close to the decision boundary between two neighboring clusters, and negative values indicate that the object may have been assigned to the wrong cluster.</p>
+<div class="cell">
+<div class="sourceCode" id="cb100"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a>dist_matrix <span class="ot">&lt;-</span> cluster_data_2025 <span class="sc">%&gt;%</span></span>
+<span id="cb100-2"><a href="#cb100-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>cluster, <span class="sc">-</span>diabetes) <span class="sc">%&gt;%</span></span>
+<span id="cb100-3"><a href="#cb100-3" aria-hidden="true" tabindex="-1"></a>  cluster<span class="sc">::</span><span class="fu">daisy</span>(<span class="at">metric =</span> <span class="st">&quot;gower&quot;</span>)</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb101"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a>sil <span class="ot">&lt;-</span> <span class="fu">silhouette</span>(kp_model<span class="sc">$</span>cluster, dist_matrix)</span>
+<span id="cb101-2"><a href="#cb101-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(sil[, <span class="dv">3</span>])</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.2102046</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode" id="cb103"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb103-1"><a href="#cb103-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sil, <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span>optimal_k, </span>
+<span id="cb103-2"><a href="#cb103-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">border =</span> <span class="cn">NA</span>, </span>
+<span id="cb103-3"><a href="#cb103-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;Silhouette Plot&quot;</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-67-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="key-clinical-insights" class="level3">
+<h3>Key Clinical Insights</h3>
+<p>The k-prototypes clustering reveals clinically interpretable subgroups within the 2025 population, reflecting distinct metabolic profiles rather than arbitrary partitions.</p>
+<p><code>Cluster 4</code> concentrates individuals with clearly <code>elevated HbA1c</code> levels (mean ≈ 8%), corresponding to the diagnosed diabetic population, although separation from neighbouring clusters is weaker than for some other groups.</p>
+<p><code>Cluster 5</code> represents a pre-diabetic risk profile, characterised by younger individuals—predominantly women—who may benefit from early monitoring and preventive intervention.</p>
+<p><code>Clusters 1–3</code> capture different non-diabetic phenotypes with broadly healthy metabolic profiles and varying demographic compositions.</p>
+<p>Overall, the clustering distinguishes diabetic from non-diabetic individuals in a meaningful way, as supported by external validation using diabetes status, while also highlighting substantial overlap consistent with diabetes risk existing along a continuum rather than as discrete categories.</p>
+<p>This analysis reinforces that diabetes risk is not uniform across the population but varies systematically with age, sex, and BMI, supporting the use of stratified screening and targeted pre ,considering that this data is simulated and not real-world, the clinical interpretations should be viewed as illustrative rather than definitive.</p>
+</section>
+</section>
+<section id="bonus" class="level2">
+<h2>Bonus</h2>
+<section id="frequency-table-for-bmi-categories" class="level3">
+<h3>Frequency Table for BMI Categories</h3>
+<div class="cell">
+<div class="sourceCode" id="cb104"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb104-1"><a href="#cb104-1" aria-hidden="true" tabindex="-1"></a><span class="fu">crosstable</span>(df_diabetes, <span class="at">by =</span> <span class="st">&quot;year&quot;</span>, </span>
+<span id="cb104-2"><a href="#cb104-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">cols =</span> <span class="fu">c</span>(<span class="st">&quot;sex&quot;</span>,<span class="st">&quot;diabetes_total&quot;</span>,</span>
+<span id="cb104-3"><a href="#cb104-3" aria-hidden="true" tabindex="-1"></a>                    <span class="st">&quot;bmi_cat&quot;</span>,<span class="st">&quot;country&quot;</span>,<span class="st">&quot;sdi&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb104-4"><a href="#cb104-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_flextable</span>() </span></code></pre></div>
+<div class="cell-output-display">
+<div class="tabwid"><style>.cl-4be7450a{table-layout:auto;}.cl-4be1eb00{font-family:'Helvetica';font-size:11pt;font-weight:bold;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-4be1eb0a{font-family:'Helvetica';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-4be40296{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-4be402a0{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-4be418e4{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(0, 0, 0, 1.00);border-top: 1.5pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4be418ee{background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 1.5pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4be418ef{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4be418f8{background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4be418f9{background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4be418fa{background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4be41902{background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4be41903{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-4be41904{background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing='true' class='cl-4be7450a'><thead><tr style="overflow-wrap:break-word;"><th  rowspan="2"class="cl-4be418e4"><p class="cl-4be40296"><span class="cl-4be1eb00">label</span></p></th><th  rowspan="2"class="cl-4be418e4"><p class="cl-4be40296"><span class="cl-4be1eb00">variable</span></p></th><th  colspan="2"class="cl-4be418ee"><p class="cl-4be40296"><span class="cl-4be1eb00">year</span></p></th></tr><tr style="overflow-wrap:break-word;"><th class="cl-4be418ef"><p class="cl-4be40296"><span class="cl-4be1eb00">2015</span></p></th><th class="cl-4be418ef"><p class="cl-4be40296"><span class="cl-4be1eb00">2025</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td  rowspan="2"class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">sex</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">men</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">125 (50.00%)</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">125 (50.00%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">woman</span></p></td><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">125 (50.00%)</span></p></td><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">125 (50.00%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td  rowspan="2"class="cl-4be418fa"><p class="cl-4be402a0"><span class="cl-4be1eb0a">diabetes_total</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">no</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">212 (53.00%)</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">188 (47.00%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">yes</span></p></td><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">38 (38.00%)</span></p></td><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">62 (62.00%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td  rowspan="4"class="cl-4be418fa"><p class="cl-4be402a0"><span class="cl-4be1eb0a">bmi_cat</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">Normal weight</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">95 (48.22%)</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">102 (51.78%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">Obesity</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">56 (54.90%)</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">46 (45.10%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">Overweight</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">85 (52.15%)</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">78 (47.85%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">Underweight</span></p></td><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">14 (36.84%)</span></p></td><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">24 (63.16%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td  rowspan="5"class="cl-4be418fa"><p class="cl-4be402a0"><span class="cl-4be1eb0a">country</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">Brazil</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">33 (33.00%)</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">67 (67.00%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">China</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">66 (56.90%)</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">50 (43.10%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">Italy</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">34 (40.48%)</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">50 (59.52%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">South Africa</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">67 (67.00%)</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">33 (33.00%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">USA</span></p></td><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">50 (50.00%)</span></p></td><td class="cl-4be418f8"><p class="cl-4be402a0"><span class="cl-4be1eb0a">50 (50.00%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td  rowspan="3"class="cl-4be41903"><p class="cl-4be402a0"><span class="cl-4be1eb0a">sdi</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">High</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">100 (50.00%)</span></p></td><td class="cl-4be41902"><p class="cl-4be402a0"><span class="cl-4be1eb0a">100 (50.00%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">Intermediate</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">100 (50.00%)</span></p></td><td class="cl-4be418f9"><p class="cl-4be402a0"><span class="cl-4be1eb0a">100 (50.00%)</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-4be41904"><p class="cl-4be402a0"><span class="cl-4be1eb0a">Low</span></p></td><td class="cl-4be41904"><p class="cl-4be402a0"><span class="cl-4be1eb0a">50 (50.00%)</span></p></td><td class="cl-4be41904"><p class="cl-4be402a0"><span class="cl-4be1eb0a">50 (50.00%)</span></p></td></tr></tbody></table></div>
+</div>
+</div>
+</section>
+<section id="bmi-categories-by-year" class="level3">
+<h3>BMI Categories by Year</h3>
+<p>The distribution of BMI categories by year can be examined using counts and proportions.</p>
+<div class="cell">
+<div class="sourceCode" id="cb105"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a>df_diabetes <span class="sc">%&gt;%</span></span>
+<span id="cb105-2"><a href="#cb105-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(year, bmi_cat) <span class="sc">%&gt;%</span></span>
+<span id="cb105-3"><a href="#cb105-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year) <span class="sc">%&gt;%</span></span>
+<span id="cb105-4"><a href="#cb105-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">prop =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 4
+# Groups:   year [2]
+   year bmi_cat           n  prop
+  &lt;dbl&gt; &lt;chr&gt;         &lt;int&gt; &lt;dbl&gt;
+1  2015 Normal weight    95 0.38 
+2  2015 Obesity          56 0.224
+3  2015 Overweight       85 0.34 
+4  2015 Underweight      14 0.056
+5  2025 Normal weight   102 0.408
+6  2025 Obesity          46 0.184
+7  2025 Overweight       78 0.312
+8  2025 Underweight      24 0.096</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizing-bmi-categories-by-year" class="level3">
+<h3>Visualizing BMI Categories by Year</h3>
+<div class="cell">
+<div class="sourceCode" id="cb107"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> df_diabetes, </span>
+<span id="cb107-2"><a href="#cb107-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> bmi_cat, <span class="at">fill =</span> <span class="fu">factor</span>(year))) <span class="sc">+</span></span>
+<span id="cb107-3"><a href="#cb107-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">&quot;dodge&quot;</span>) <span class="sc">+</span></span>
+<span id="cb107-4"><a href="#cb107-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;BMI categories by year&quot;</span>,</span>
+<span id="cb107-5"><a href="#cb107-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;BMI category&quot;</span>,</span>
+<span id="cb107-6"><a href="#cb107-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Count&quot;</span>,</span>
+<span id="cb107-7"><a href="#cb107-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">&quot;Year&quot;</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-70-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="proportional-distribution-of-bmi-categories-by-year" class="level3">
+<h3>Proportional Distribution of BMI Categories by Year</h3>
+<div class="cell">
+<div class="sourceCode" id="cb108"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb108-1"><a href="#cb108-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_diabetes, </span>
+<span id="cb108-2"><a href="#cb108-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> bmi_cat, <span class="at">fill =</span> <span class="fu">factor</span>(year))) <span class="sc">+</span></span>
+<span id="cb108-3"><a href="#cb108-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">&quot;fill&quot;</span>) <span class="sc">+</span></span>
+<span id="cb108-4"><a href="#cb108-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>percent) <span class="sc">+</span></span>
+<span id="cb108-5"><a href="#cb108-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;BMI categories by year (proportions)&quot;</span>,</span>
+<span id="cb108-6"><a href="#cb108-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;BMI category&quot;</span>,</span>
+<span id="cb108-7"><a href="#cb108-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Proportion&quot;</span>,</span>
+<span id="cb108-8"><a href="#cb108-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">&quot;Year&quot;</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img src="02-exploring-diabetes-data_files/figure-html/unnamed-chunk-71-1.png" class="img-fluid" width="672" /></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="quarto-navigation-envelope" class="hidden">
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyLXRpdGxl">From Basics to Advanced Health Analytics: Exploring Diabetes Data</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXItdGl0bGU=">Principles of Data Analysis in R</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1wcmV2">2. Getting Started</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi9pbmRleC5odG1sMS4tV2VsY29tZQ==">1. Welcome</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi8wMS1nZXR0aW5nLXN0YXJ0ZWQuaHRtbDIuLUdldHRpbmctU3RhcnRlZA==">2. Getting Started</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOnF1YXJ0by1zaWRlYmFyLXNlY3Rpb24tMQ==">3. Data Analytics</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1zaWRlYmFyOi8wMi1leHBsb3JpbmctZGlhYmV0ZXMtZGF0YS5odG1sMy4xLUV4cGxvcmluZy1EaWFiZXRlcy1EYXRh">3.1 Exploring Diabetes Data</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6QWJvdXQgVXM=">About Us</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6L2Fib3V0Lmh0bWw=">/about.html</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6aHR0cHM6Ly9ybGFkaWVzcm9tZS5vcmcv">https://rladiesrome.org/</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWludC1uYXZiYXI6aHR0cHM6Ly9naXRodWIuY29tL3JsYWRpZXNyb21l">https://github.com/rladiesrome</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWJyZWFkY3J1bWJzLTMuLURhdGEtQW5hbHl0aWNz">3. Data Analytics</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLWJyZWFkY3J1bWJzLTMuMS1FeHBsb3JpbmctRGlhYmV0ZXMtRGF0YQ==">3.1 Exploring Diabetes Data</span></p>
+<div class="hidden quarto-markdown-envelope-contents" data-render-id="Zm9vdGVyLWxlZnQ=">
+<p>Copyright © 2025 <a href="https://www.rladiesrome.org/">RLadiesRome Learning | RConsortium</a><br> Designer &amp; Maintainer: <a href="https://github.com/Fgazzelloni">Federica Gazzelloni</a><br> Powered by: <a href="https://quarto.org/">Quarto &amp; GitHub Pages | <a href="/LICENSE.md">MIT License.</a></p>
+</div>
+<div class="hidden quarto-markdown-envelope-contents" data-render-id="Zm9vdGVyLWNlbnRlcg==">
+<p><a href="https://www.rladiesrome.org/" target="_blank"> <img src="images/rconsortium.png" alt="rconsortium logo" style="height:60px;"></a></p>
+</div>
+<div class="hidden quarto-markdown-envelope-contents" data-render-id="YW5ub3VuY2VtZW50">
+<p><strong>Alert</strong> - Course 1: Wednesday, 17 December 2025 at 18:00 CEST.</p>
+</div>
+</div>
+<div id="quarto-meta-markdown" class="hidden">
+<p><span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW1ldGF0aXRsZQ==">From Basics to Advanced Health Analytics: Exploring Diabetes Data</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLXR3aXR0ZXJjYXJkdGl0bGU=">From Basics to Advanced Health Analytics: Exploring Diabetes Data</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW9nY2FyZHRpdGxl">From Basics to Advanced Health Analytics: Exploring Diabetes Data</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLXR3aXR0ZXJjYXJkZGVzYw==">This tutorial demonstrates exploratory data analysis (EDA) techniques on a simulated diabetes dataset for the years 2015 and 2025, covering data import, pre-processing, visualization, summary statistics, prevalence calculation, and statistical inference.</span> <span class="hidden quarto-markdown-envelope-contents" data-render-id="cXVhcnRvLW9nY2FyZGRkZXNj">This tutorial demonstrates exploratory data analysis (EDA) techniques on a simulated diabetes dataset for the years 2015 and 2025, covering data import, pre-processing, visualization, summary statistics, prevalence calculation, and statistical inference.</span></p>
+</div>
+</section>
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Global, regional, and national cascades of diabetes care, 2000–23: a systematic review and modelling analysis using findings from the Global Burden of Disease Study, Stafford, Lauryn K et al. The Lancet Diabetes &amp; Endocrinology, Volume 13, Issue 11, 924 - 934 (<a href="https://doi.org/10.1016/S2213-8587(25)00217-7" class="uri">https://doi.org/10.1016/S2213-8587(25)00217-7</a>)<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Burden of 375 diseases and injuries, risk-attributable burden of 88 risk factors, and healthy life expectancy in 204 countries and territories, including 660 subnational locations, 1990–2023: a systematic analysis for the Global Burden of Disease Study 2023 Hay, Simon I et al. The Lancet, Volume 406, Issue 10513, 1873 - 1922 (<a href="https://doi.org/10.1016/S0140-6736(25)01637-X" class="uri">https://doi.org/10.1016/S0140-6736(25)01637-X</a>)<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+</main> <!-- /main -->
+<script id = "quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/rladiesrome\.github\.io\/Principles-of-data-Analysis-in-R");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a  href="/01-getting-started.html" class="pagination-link" aria-label="2. Getting Started">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">2. Getting Started</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      <div class='footer-contents'>Copyright © 2025 <a href="https://www.rladiesrome.org/">RLadiesRome Learning | RConsortium</a><br> Designer & Maintainer: <a href="https://github.com/Fgazzelloni">Federica Gazzelloni</a><br> Powered by: <a href="https://quarto.org/">Quarto & GitHub Pages | <a href="/LICENSE.md">MIT License.</a>
+</div>  
+    </div>   
+    <div class="nav-footer-center">
+      <div class='footer-contents'><a href="https://www.rladiesrome.org/" target="_blank">
+<img src="images/rconsortium.png" alt="rconsortium logo" style="height:60px;"></a>
+</div>  
+    </div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/rladiesrome/Exploring-Diabetes-Data">
+      <i 
+  class="bi bi-github" 
+  role="img" 
+>
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/company/rladiesrome">
+      <i 
+  class="bi bi-linkedin" 
+  role="img" 
+>
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://www.rladies.org/">
+      <i 
+  class="bi bi-globe" 
+  role="img" 
+>
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="mailto:rome@rladies.com">
+      <i 
+  class="bi bi-envelope" 
+  role="img" 
+>
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+</body>
+
+</html>

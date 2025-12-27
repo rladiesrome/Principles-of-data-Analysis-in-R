@@ -67,7 +67,8 @@ Before we start, we load a small set of packages.
 #| eval: false
 install.packages(c("readxl", "janitor", "tidyverse", 
                    "scales", "crosstable", 
-                   "vcd", "DescTools"))
+                   "vcd", "DescTools", 
+                   "cluster", "clustMixType"))
 ```
 
 ### Load Required Libraries
@@ -109,7 +110,6 @@ Data are stored in one Excel file with two sheets: one for 2015 and one for 2025
 We use the `read_excel` function from the `readxl` package to read the data and the `clean_names` function from the `janitor` package to clean the column names.
 
 ```{r}
-#path <- "data/diabetes_study_filled_NEW.xlsx"
 path <- "data/diabetes_study_filled_NEW.xlsx"
 
 d2015 <- readxl::read_excel(path, 
@@ -134,6 +134,10 @@ data_raw <- bind_rows(
   d2025 |> mutate(year = 2025)) |> 
   janitor::clean_names()
 ```
+
+::: {.callout-note appearance="simple" title="Pipe Operators"}
+This material uses both the native R pipe (**|>**) and the tidyverse pipe (**%>%**). They are functionally equivalent and interchangeable in this context.
+:::
 
 ### Data Inspection
 
@@ -786,8 +790,7 @@ Lambda balances numerical (Euclidean) vs categorical (matching) distance:
 
 $$
 \lambda =\sum{\frac{\text{Std Dev of numerical features}}{\text{numerical features}}}
-$${#eq-lambda}
-
+$$ {#eq-lambda}
 
 Calculate lambda manually to verify:
 

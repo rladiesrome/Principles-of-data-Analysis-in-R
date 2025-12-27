@@ -40,7 +40,7 @@
     "href": "02-exploring-diabetes-data.html#data-import",
     "title": "From Basics to Advanced Health Analytics: Exploring Diabetes Data",
     "section": "Data Import",
-    "text": "Data Import\nData are stored in one Excel file with two sheets: one for 2015 and one for 2025. We read each sheet into R and clean the column names so they are consistent and easy to type.\nWe use the read_excel function from the readxl package to read the data and the clean_names function from the janitor package to clean the column names.\n\n#path &lt;- \"data/diabetes_study_filled_NEW.xlsx\"\npath &lt;- \"data/diabetes_study_filled_NEW.xlsx\"\n\nd2015 &lt;- readxl::read_excel(path, \n                            sheet = \"2015\") \nd2025 &lt;- readxl::read_excel(path, \n                            sheet = \"2025\")",
+    "text": "Data Import\nData are stored in one Excel file with two sheets: one for 2015 and one for 2025. We read each sheet into R and clean the column names so they are consistent and easy to type.\nWe use the read_excel function from the readxl package to read the data and the clean_names function from the janitor package to clean the column names.\n\npath &lt;- \"data/diabetes_study_filled_NEW.xlsx\"\n\nd2015 &lt;- readxl::read_excel(path, \n                            sheet = \"2015\") \nd2025 &lt;- readxl::read_excel(path, \n                            sheet = \"2025\")",
     "crumbs": [
       "About Us",
       "3. Data Analytics",

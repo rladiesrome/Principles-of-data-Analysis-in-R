@@ -35,7 +35,7 @@ To explore how diabetes prevalence and characteristics vary over time and across
 
 > Why Diabetes?
 
-Diabetes is a chronic health condition that affects how the body turns food into energy (blood glucose). It includes **Type 1**, **Type 2**, and **gestational diabetes**. The dataset used in this analysis contains information on individuals' `diabetes status`, `laboratory measurements` (such as HbA1c levels), `demographic information` (age, sex, country), and `other health-related variables`.
+**Diabetes** is a chronic health condition that affects how the body turns food into energy (blood glucose). It includes **Type 1**, **Type 2**, and **gestational diabetes**. The dataset used in this analysis contains information on individuals' `diabetes status`, `laboratory measurements` (such as HbA1c levels), `demographic information` (age, sex, country), and `other health-related variables`.
 
 At the population level, diabetes is a major contributor to illness (`morbidity`) and premature death (`mortality`). Classified as a **non-communicable disease (NCD)**, it is associated with various complications, including `cardiovascular disease`, `kidney failure`, and `neuropathy.`
 
@@ -185,7 +185,8 @@ This step involves using the `mutate` function from the `dplyr` package to creat
 df_diabetes <- data_raw |>
   mutate(
     # Laboratory-defined diabetes
-    diabetes_lab = if_else(lab_hba1c >= 6.5, "yes", "no", missing = NA_character_),
+    diabetes_lab = if_else(lab_hba1c >= 6.5, "yes", "no", 
+                           missing = NA_character_),
     # Total diabetes (self-report OR laboratory, excluding gestational diabetes)
     diabetes_total = case_when(
       gestational_diabetes == "yes" ~ "no",
@@ -210,6 +211,9 @@ Exploratory Data Analysis (EDA) is a crucial step in understanding the underlyin
 Let's visualize the distribution of HbA1c levels for the year 2015 using a histogram combined with a density plot. This will help us understand the spread and central tendency of HbA1c values in that year.
 
 ```{r}
+#| label: fig-hba1c-2015
+#| fig-cap: "HbA1c Distribution (2015)"
+#| fig-alt: "Histogram and density plot showing the distribution of HbA1c levels for 2015"
 ggplot(data = d2015, 
        aes(x = lab_hba1c)) +
   geom_histogram(aes(y = after_stat(density)), 
@@ -228,6 +232,9 @@ ggplot(data = d2015,
 To compare the distribution of **HbA1c levels between 2015 and 2025**, we can create a density plot that overlays the distributions for both years. This will allow us to visually assess any changes in HbA1c levels over time.
 
 ```{r}
+#| label: fig-hba1c-distribution
+#| fig-cap: "HbA1c Distribution — 2015 vs 2025"
+#| fig-alt: "Density plot comparing HbA1c levels for 2015 and 2025"
 df_diabetes %>%
   ggplot(aes(x = lab_hba1c, 
            fill = as.factor(year))) +
@@ -243,6 +250,9 @@ df_diabetes %>%
 To check the age distribution for both years, we can create overlapping histograms. This will help us visualize how the age distribution of the population has changed from 2015 to 2025.
 
 ```{r}
+#| label: fig-age-distribution
+#| fig-cap: "Age Distribution: 2015 vs 2025"
+#| fig-alt: "Overlapping histograms showing age distribution for 2015 and 2025"
 ggplot(data = df_diabetes,
        mapping = aes(x = age, 
                      fill = factor(year))) +
@@ -257,6 +267,9 @@ ggplot(data = df_diabetes,
 ### Age Boxplots
 
 ```{r}
+#| label: fig-age-boxplots
+#| fig-cap: "Age Distribution by Year"
+#| fig-alt: "Boxplots showing age distribution for 2015 and 2025, faceted by sex"
 ggplot(df_diabetes,
        aes(x = factor(year), y = age, 
            fill = factor(year))) +
@@ -347,6 +360,9 @@ prev_ci
 To visualize diabetes prevalence by year, we can create a bar plot using the `ggplot2` package. This plot will show the proportion of individuals with diabetes for each year.
 
 ```{r}
+#| label: fig-diabetes-prevalence
+#| fig-cap: "Diabetes Prevalence by Year"
+#| fig-alt: "Bar plot showing diabetes prevalence for 2015 and 2025 with confidence intervals"
 ggplot(prev_ci, 
        aes(x = factor(year), 
            y = prev, 
@@ -367,6 +383,9 @@ ggplot(prev_ci,
 To explore the interaction between gender, age, and diabetes status, we can create a faceted bar plot. This plot will show the distribution of diabetes status across different age groups, separated by gender.
 
 ```{r}
+#| label: fig-diabetes
+#| fig-cap: "Diabetes Status by Age Group and Gender"
+#| fig-alt: "Faceted bar plot showing diabetes status by age group and gender"
 ggplot(df_diabetes, 
        aes(x = age_group, 
            fill = diabetes_total)) +
@@ -382,6 +401,9 @@ ggplot(df_diabetes,
 Interaction between gender, age and diabetes
 
 ```{r}
+#| label: fig-age-diabetes-boxplots
+#| fig-cap: "Age Distribution by Diabetes Status and Gender"
+#| fig-alt: "Boxplots showing age distribution by diabetes status and gender"
 ggplot(df_diabetes, 
        aes(x = diabetes_total, y = age, 
            fill = sex)) +
@@ -400,6 +422,36 @@ To answer our research questions regarding diabetes prevalence, we will use the 
 > Question 1: The prevalence of diabetes changed significantly between 2015 and 2025?
 
 ### Chi-square Test for Year and Diabetes Status
+
+The Chi-square test evaluates whether there is a significant association between the year (2015 vs 2025) and diabetes status (yes vs no).
+
+**The chi-squared test statistic is defined as:**
+
+$$
+\chi^2 \;=\; \sum_{i=1}^{r} \sum_{j=1}^{c}
+\frac{\left(O_{ij} - E_{ij}\right)^2}{E_{ij}}
+$$ {#eq-chi_squared}
+
+where:
+
+-   $O_{ij}$ is the observed frequency in cell $(i,j)$ of the contingency table
+-   $E_{ij}$ is the expected frequency in the same cell, computed as $E_{ij} = \frac{(\text{row total}_i)(\text{column total}_j)}{\text{grand total}}$
+-   $r$ is the number of rows
+-   $c$ is the number of columns
+
+**The hypotheses for this test are:**
+
+$$
+H_0: \text{Year and diabetes status are independent}
+$$ $$
+H_A: \text{Year and diabetes status are associated}
+$$
+
+The null hypothesis ($H_0$) states that there is no association between the year and diabetes status, meaning that the prevalence of diabetes is the same in both years. The alternative hypothesis ($H_A$) states that there is an association, indicating that the prevalence of diabetes differs between 2015 and 2025.
+
+The significance level ($\alpha$) is set at 0.05.
+
+**Contingency table for year and diabetes:**
 
 ```{r}
 table_year <- table(df_diabetes$year, 
@@ -434,7 +486,7 @@ res_year
 df_diabetes_2025 <- df_diabetes |> filter(year == 2025)
 ```
 
-Contingency table for countries and diabetes
+**Contingency table for countries and diabetes:**
 
 ```{r}
 tab_2025 <- table(df_diabetes_2025$country,
@@ -459,9 +511,12 @@ residuals <- chi_2025$stdres
 round(residuals, 2)
 ```
 
-Identify where the greatest contribution lies
+Identify where the greatest contribution lies:
 
 ```{r}
+#| label: fig-mosaic-2025
+#| fig-cap: "Mosaic Plot — Diabetes by Country (2025)"
+#| fig-alt: "Mosaic plot showing the distribution of diabetes status across different countries in 2025"
 mosaicplot(tab_2025,
            main = "Mosaic Plot — Diabetes by Country (2025)",
            color = TRUE, las = 1)
@@ -479,23 +534,19 @@ In this final analytical step, we explore whether individuals in the 2025 datase
 
 Clustering is particularly useful in public health settings when the goal is to:
 
-```         
-- identify subgroups with similar risk profiles,
-- explore heterogeneity within a population,
-- generate hypotheses for targeted interventions.
-```
+-   identify subgroups with similar risk profiles,
+-   explore heterogeneity within a population,
+-   generate hypotheses for targeted interventions.
 
 Because our dataset contains both numeric and categorical variables, we use the `k-prototypes algorithm`, which is specifically designed for mixed-type data.
 
-**Why k-prototypes?**
+> Why k-prototypes?
 
 Traditional clustering methods such as `k-means` only work with numeric variables, while `k-modes` are limited to categorical data. The `k-prototypes` algorithm combines both approaches:
 
-```         
-- Euclidean distance is used for numeric variables,
-- matching dissimilarity is used for categorical variables,
-- a tuning parameter ($\lambda$) balances the contribution of each type.
-```
+-   Euclidean distance is used for numeric variables,
+-   matching dissimilarity is used for categorical variables,
+-   a tuning parameter ($\lambda$) balances the contribution of each type.
 
 This makes k-prototypes well suited for health datasets that mix laboratory values (e.g. `HbA1c`) with demographic or clinical categories (e.g. `sex`, `BMI group`, `age band`).
 
@@ -603,7 +654,7 @@ features_cat <- c("sex",
                   "age_group")
 ```
 
-Then we use the `expand_grid` function to create all possible pairs of categorical features, compute Cramér’s V for each pair, and filter for weak to moderate associations (Cramér's V \<= 0.5):
+Then we use the `expand_grid` function to create all possible pairs of categorical features, compute Cramér’s V for each pair, and filter for weak to moderate associations (Cramér's V $<= 0.5$):
 
 ```{r}
 expand_grid(feature1 = features_cat,
@@ -626,12 +677,15 @@ This confirms that the retained categorical variables are not strongly redundant
 
 Before clustering, we check:
 
-```         
-- outliers in numeric variables,
-- imbalanced categories in categorical variables.
-```
+-   outliers in numeric variables,
+-   imbalanced categories in categorical variables.
 
 ```{r}
+#| label: fig-lab-hba1c-boxplot
+#| fig-cap: "Boxplot of lab_hba1c"
+#| fig-alt: "Boxplot showing the distribution of lab_hba1c values to identify outliers"
+#| fig-width: 6
+#| fig-height: 4
 cluster_data_2025 %>%
   select(lab_hba1c) %>%
   ggplot() +
@@ -659,7 +713,7 @@ IQR_val <- Q3 - Q1
 upper_whisker <- Q3 + 1.5 * IQR_val
 ```
 
-In summary, winsorizing the `lab_hba1c` variable helps to mitigate the influence of extreme outliers on the clustering results.
+In summary, `winsorizing` the `lab_hba1c` variable helps to mitigate the influence of extreme outliers on the clustering results.
 
 #### Winsorization of lab_hba1c
 
@@ -674,9 +728,12 @@ We use `pmin()` function to force the `lab_hba1c` outliers to equal the `upper w
 cluster_data_2025$lab_hba1c <- pmin(cluster_data_2025$lab_hba1c, upper_whisker)
 ```
 
-After winsorization - where did the outliers go? They are now all at the upper whisker.
+After winsorization - **where did the outliers go?** They are now all at the upper whisker.
 
 ```{r}
+#| label: fig-lab-hba1c-boxplot-winsorized
+#| fig-cap:  "Boxplot of lab_hba1c After Winsorization"
+#| fig-alt: "Boxplot showing the distribution of lab_hba1c values after winsorization to identify outliers"
 boxplot(cluster_data_2025$lab_hba1c, 
         main = "lab_hba1c – After Winsorization",
         horizontal = TRUE)
@@ -702,7 +759,7 @@ cat_balance <- cluster_data_2025 %>%
 cat_balance
 ```
 
-None of the categorical variables used as **input features for clustering** are extremely rare (i.e., less than 5% of the total), so all can be retained in the clustering process. If a rare input category had been present, it would have been necessary to regroup it into a broader or “other” category to avoid sparsity, as very small categories can introduce noise and instability in distance calculations when categorical mismatches directly contribute to dissimilarity.
+None of the categorical variables used as **input features for clustering** are extremely rare (i.e., less than $5\%$ of the total), so all can be retained in the clustering process. If a rare input category had been present, it would have been necessary to regroup it into a broader or “other” category to avoid sparsity, as very small categories can introduce noise and instability in distance calculations when categorical mismatches directly contribute to dissimilarity.
 
 Although a category within the **outcome variable** (gestational diabetes) is rare, this variable is **not used as an input to the clustering algorithm** and therefore does not affect distance computation or cluster formation. Outcome variables are analysed **post hoc**, to characterise and interpret the resulting clusters rather than to define them. As a result, rarity in an outcome category does not pose the same methodological concerns as rarity in input features.
 
@@ -738,9 +795,12 @@ kproto_wss_2025 <- purrr::map_dbl(2:10, function(k) {
 })
 ```
 
-And plot the WSS values to identify the "elbow" point where adding more clusters yields diminishing returns in reducing WSS.
+And plot the **WSS values** to identify the "elbow" point where adding more clusters yields diminishing returns in reducing WSS.
 
 ```{r}
+#| label: fig-elbow-2025 
+#| fig-cap: "Elbow Method to Determine Optimal Number of Clusters (2025)"
+#| fig-alt: "Line plot showing the total within-cluster sum of squares for different numbers of clusters (k) to identify the optimal number of clusters using the elbow method"
 plot(2:10, kproto_wss_2025, type = "b",
      xlab = "Number of clusters (k)",
      ylab = "Total within-cluster sum of squares",
@@ -804,6 +864,9 @@ kp_model$withinss
 ```
 
 ```{r}
+#| label: fig-cluster-compactness 
+#| fig-cap: "Cluster Compactness (2025)"
+#| fig-alt: "Bar plot showing the within-cluster sum of squares for each cluster to assess cluster compactness"
 # Compare cluster compactness
 barplot(kp_model$withinss, 
         names.arg = paste("Cluster", 1:5),
@@ -843,22 +906,24 @@ cluster_data_2025 |>
   )
 ```
 
-**Cluster 1** (n=46): Men, normal weight, ages 40-49, HbA1c 7.6% \
+**Cluster 1** (n=46): Men, normal weight, ages 40-49, HbA1c 7.6%\
 Middle-aged men with healthy weight and but diabetic range blood sugar (lean male diabetics)\
 **Cluster 1 is the danger zone** - lean men with diabetes (often associated with worse outcomes)
 
-**Cluster 2** (n=50): Men, normal weight, ages 60+, HbA1c 5.4% \
+**Cluster 2** (n=50): Men, normal weight, ages 60+, HbA1c 5.4%\
 Older men with healthy weight and normal blood sugar
 
-**Cluster 3** (n=45): Women, obesity, ages 40-49, HbA1c 5.5% \
+**Cluster 3** (n=45): Women, obesity, ages 40-49, HbA1c 5.5%\
 Middle-aged obese women with normal HbA1c (relatively well-controlled despite obesity) Cluster 3 shows metabolic resilience despite obesity
 
-**Cluster 4** (n=52): Men, overweight, ages 50-59, HbA1c 5.5% \
+**Cluster 4** (n=52): Men, overweight, ages 50-59, HbA1c 5.5%\
 Middle-aged overweight men with normal HbA1c
 
 **Cluster 5** (n=57): Women, normal weight, ages 50-59, HbA1c 5.9% - Middle-aged women with normal weight but borderline prediabetic HbA1c
 
-NB/ Synthesised data! The algorithm successfully separated groups by the interaction of categorical (sex, BMI category, age group) and continuous (HbA1c) variables.
+::: {.callout-note appearance="simple" title="Interpretation"}
+Synthesised data! The algorithm successfully separated groups by the interaction of categorical (sex, BMI category, age group) and continuous (HbA1c) variables.
+:::
 
 ### External Validation Using Diabetes Status
 
@@ -880,11 +945,11 @@ assocstats(table(cluster_data_2025$cluster, cluster_data_2025$diabetes))
 
 The chi-squared test shows **very strong association** between clusters and diabetes status:
 
--   **χ² = 143.72, p \< 2.2e-16** → Highly significant relationship
+-   $\chi^2 = 143.72$, $p< 2.2e-16$ → Highly significant relationship
 
--   **Cramer's V = 0.758** → Strong effect size (0.5+ is considered large)
+-   $\text{Cramer's V} = 0.758$ → Strong effect size ($0.5+$ is considered large)
 
--   **Contingency Coefficient = 0.604** → Confirms strong association
+-   $\text{Contingency Coefficient} = 0.604$ Confirms strong association
 
 This demonstrates that the K-prototypes clustering successfully identified clinically meaningful groups that differ significantly in diabetes prevalence. To see this better:
 
@@ -900,7 +965,7 @@ A Cramér’s V of `r DescTools::CramerV(cluster_data_2025$cluster, cluster_data
 
 ### Cluster Quality: Silhouette Analysis
 
-Silhouette analysis measures how similar an object is to its own cluster compared to other clusters. The silhouette value ranges from -1 to 1, where a value close to 1 indicates that the object is well clustered, a value of 0 indicates that the object is on or very close to the decision boundary between two neighbouring clusters, and negative values indicate that the observation may be closer to a neighbouring cluster than to the one it was assigned to, suggesting possible misclassification.
+**Silhouette analysis** measures how similar an object is to its own cluster compared to other clusters. The silhouette value ranges from -1 to 1, where a value close to 1 indicates that the object is well clustered, a value of 0 indicates that the object is on or very close to the decision boundary between two neighbouring clusters, and negative values indicate that the observation may be closer to a neighbouring cluster than to the one it was assigned to, suggesting possible misclassification.
 
 ```{r}
 dist_matrix <- cluster_data_2025 %>%
@@ -914,51 +979,70 @@ mean(sil[, 3])
 ```
 
 ```{r}
+#| label: fig-silhouette
+#| fig-cap: "Silhouette Plot"
+#| fig-alt: "Silhouette plot showing the silhouette values for each observation in the clustering solution"
 plot(sil, col = 1:optimal_k, 
      border = NA, 
      main = "Silhouette Plot")
 ```
 
-Overall quality: Average width = 0.23 → "Weak structure" (below the 0.25-0.50 "reasonable" range)
+Overall quality: Average width = $0.23$ indicates **Weak structure** (below the $0.25-0.50$ **reasonable** range)
 
-Cluster-specific performance:
+**Cluster-specific performance:**
 
--   Cluster 1 (0.11) - Poor separation, many negative values → Members may be misclassified or this cluster is poorly defined
+-   **Cluster 1 (0.11)** - Poor separation, many negative values → Members may be misclassified or this cluster is poorly defined
 
--   Clusters 2-4 (0.24-0.25) - Borderline acceptable
+-   **Clusters 2-4 (0.24-0.25)** - Borderline acceptable
 
--   Cluster 5 (0.30) - Best separation, but still only moderate
+-   **Cluster 5 (0.30)** - Best separation, but still only moderate
 
-The silhouette plot measures clustering quality by calculating how well each observation fits its assigned cluster compared to neighbouring clusters. Ideally, we'd hope for an average silhouette width above 0.5 (indicating reasonable to strong structure), with all positive values showing that observations are closer to their own cluster than to others. 'Good' clustering also shows similar widths across all clusters, with wide, uniform bars indicating tight, cohesive groups. This result (average = 0.23) falls below the "weak structure" threshold and includes negative values in Cluster 1, suggesting statistical evidence for poor separation. However, the strong chi-squared association with diabetes (χ² = 143.72, p \< 2.2e-16) shows the clusters are clinically meaningful despite low silhouette scores, highlighting the difference between statistical optimisation and domain-relevant pattern discovery in mixed-type data.
+[The **silhouette plot** measures clustering quality by calculating how well each observation fits its assigned cluster compared to neighbouring clusters.]{.underline} Ideally, we'd hope for an average silhouette width above 0.5 (indicating reasonable to strong structure), with all positive values showing that observations are closer to their own cluster than to others. 'Good' clustering also shows similar widths across all clusters, with wide, uniform bars indicating tight, cohesive groups. This result (average = 0.23) falls below the "weak structure" threshold and includes negative values in Cluster 1, suggesting statistical evidence for poor separation. However, the strong chi-squared association with diabetes ($\chi^2 = 143.72$, $p < 2.2e-16$) shows the clusters are clinically meaningful despite low silhouette scores, highlighting the difference between statistical optimisation and domain-relevant pattern discovery in mixed-type data.
 
 ### Boxplots & Cluster Compositions
 
 To better understand the composition of each of the clusters, we can do some simple plots:
 
 ```{r}
+#| layout-ncol: 2
+#| label: fig-crosstable
+#| fig-cap: "Crosstab of Demographic and Clinical Variables by Year"
+#| fig-subcap:
+#|  - "Boxplot showing cluster-wise distribution of HbA1c levels"
+#|  - "Bar plot showing the distribution of age groups across clusters"
+#|  - "Bar plot showing the distribution of sex across clusters"
+#|  - "Bar plot showing the distribution of BMI categories across clusters"
+#| fig-alt: "Crosstab showing the distribution of demographic and clinical variables across different years"
 p_hba1c <- ggplot(cluster_data_2025, 
                   aes(x = factor(cluster), 
                       y = lab_hba1c_unscaled, 
                       fill = factor(cluster))) +
   geom_boxplot() +
-  labs(title = "HbA1c by Cluster", x = "Cluster", y = "HbA1c (%)") +
+  labs(title = "HbA1c by Cluster", 
+       x = "Cluster", y = "HbA1c (%)") +
   theme_minimal() +
   theme(legend.position = "none")
 
 # Age group
-p_age <- ggplot(cluster_data_2025, aes(x = factor(cluster), fill = age_group)) +
+p_age <- ggplot(cluster_data_2025, 
+                aes(x = factor(cluster), 
+                    fill = age_group)) +
   geom_bar(position = "fill") +
   labs(title = "Age Group", x = "Cluster", y = "") +
   theme_minimal()
 
 # Sex
-p_sex <- ggplot(cluster_data_2025, aes(x = factor(cluster), fill = sex)) +
+p_sex <- ggplot(cluster_data_2025, 
+                aes(x = factor(cluster), 
+                    fill = sex)) +
   geom_bar(position = "fill") +
   labs(title = "Sex", x = "Cluster", y = "") +
   theme_minimal()
 
 # BMI
-p_bmi <- ggplot(cluster_data_2025, aes(x = factor(cluster), fill = bmi_cat)) +
+p_bmi <- ggplot(cluster_data_2025, 
+                aes(x = factor(cluster), 
+                    fill = bmi_cat)) +
   geom_bar(position = "fill") +
   labs(title = "BMI Category", x = "Cluster", y = "") +
   theme_minimal()

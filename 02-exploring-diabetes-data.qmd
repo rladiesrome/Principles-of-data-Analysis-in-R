@@ -136,7 +136,7 @@ data_raw <- bind_rows(
 ```
 
 ::: {.callout-note appearance="simple" title="Pipe Operators"}
-This material uses both the native R pipe (**|>**) and the tidyverse pipe (**%>%**). They are functionally equivalent and interchangeable in this context.
+This material uses both the native R pipe (**\|\>**) and the tidyverse pipe (**%\>%**). They are functionally equivalent and interchangeable in this context.
 :::
 
 ### Data Inspection
@@ -714,8 +714,7 @@ We then retain the final set of variables for clustering and standardise the num
 
 ```{r}
 cluster_data_2025 <- cluster_data_2025 %>%
-  select(lab_hba1c_original,
-         lab_hba1c,
+  select(lab_hba1c,
          sex,
          age_group,
          bmi_cat) %>%
@@ -824,17 +823,42 @@ The cluster centres for categorical variables represent modal categories, while 
 kp_model$centers
 ```
 
+To better understand the numerical values of lab_hba1c, we undo the scaling of the numerical column, using the standard deviation and mean calculated earlier (see Summary Statistics):
+
+```{r}
+cluster_data_2025['lab_hba1c_unscaled'] = (cluster_data_2025['lab_hba1c'] * 0.92) + 5.96
+```
+
+Now we can obtain a better understanding of each cluster:
+
 ```{r}
 cluster_data_2025 |>
   group_by(cluster) |>
   summarise(
     n = n(),
-    hba1c = round(mean(lab_hba1c), 1),
+    hba1c = round(mean(lab_hba1c_unscaled), 1),
     sex = names(which.max(table(sex))),
     bmi_cat = names(which.max(table(bmi_cat))),
     age = names(which.max(table(age_group)))
   )
 ```
+
+**Cluster 1** (n=46): Men, normal weight, ages 40-49, HbA1c 7.6% \
+Middle-aged men with healthy weight and but diabetic range blood sugar (lean male diabetics)\
+**Cluster 1 is the danger zone** - lean men with diabetes (often associated with worse outcomes)
+
+**Cluster 2** (n=50): Men, normal weight, ages 60+, HbA1c 5.4% \
+Older men with healthy weight and normal blood sugar
+
+**Cluster 3** (n=45): Women, obesity, ages 40-49, HbA1c 5.5% \
+Middle-aged obese women with normal HbA1c (relatively well-controlled despite obesity) Cluster 3 shows metabolic resilience despite obesity
+
+**Cluster 4** (n=52): Men, overweight, ages 50-59, HbA1c 5.5% \
+Middle-aged overweight men with normal HbA1c
+
+**Cluster 5** (n=57): Women, normal weight, ages 50-59, HbA1c 5.9% - Middle-aged women with normal weight but borderline prediabetic HbA1c
+
+NB/ Synthesised data! The algorithm successfully separated groups by the interaction of categorical (sex, BMI category, age group) and continuous (HbA1c) variables.
 
 ### External Validation Using Diabetes Status
 
@@ -852,6 +876,22 @@ chisq.test(table(cluster_data_2025$cluster, cluster_data_2025$diabetes))
 
 ```{r}
 assocstats(table(cluster_data_2025$cluster, cluster_data_2025$diabetes))
+```
+
+The chi-squared test shows **very strong association** between clusters and diabetes status:
+
+-   **χ² = 143.72, p \< 2.2e-16** → Highly significant relationship
+
+-   **Cramer's V = 0.758** → Strong effect size (0.5+ is considered large)
+
+-   **Contingency Coefficient = 0.604** → Confirms strong association
+
+This demonstrates that the K-prototypes clustering successfully identified clinically meaningful groups that differ significantly in diabetes prevalence. To see this better:
+
+```{r}
+table(cluster_data_2025$cluster, cluster_data_2025$diabetes) %>% 
+  prop.table(margin = 1) %>% 
+  round(2)
 ```
 
 Practical implication for your clustering workflow:
@@ -879,6 +919,18 @@ plot(sil, col = 1:optimal_k,
      main = "Silhouette Plot")
 ```
 
+Overall quality: Average width = 0.23 → "Weak structure" (below the 0.25-0.50 "reasonable" range)
+
+Cluster-specific performance:
+
+-   Cluster 1 (0.11) - Poor separation, many negative values → Members may be misclassified or this cluster is poorly defined
+
+-   Clusters 2-4 (0.24-0.25) - Borderline acceptable
+
+-   Cluster 5 (0.30) - Best separation, but still only moderate
+
+The silhouette plot measures clustering quality by calculating how well each observation fits its assigned cluster compared to neighbouring clusters. Ideally, we'd hope for an average silhouette width above 0.5 (indicating reasonable to strong structure), with all positive values showing that observations are closer to their own cluster than to others. 'Good' clustering also shows similar widths across all clusters, with wide, uniform bars indicating tight, cohesive groups. This result (average = 0.23) falls below the "weak structure" threshold and includes negative values in Cluster 1, suggesting statistical evidence for poor separation. However, the strong chi-squared association with diabetes (χ² = 143.72, p \< 2.2e-16) shows the clusters are clinically meaningful despite low silhouette scores, highlighting the difference between statistical optimisation and domain-relevant pattern discovery in mixed-type data.
+
 ### Boxplots & Cluster Compositions
 
 To better understand the composition of each of the clusters, we can do some simple plots:
@@ -886,7 +938,7 @@ To better understand the composition of each of the clusters, we can do some sim
 ```{r}
 p_hba1c <- ggplot(cluster_data_2025, 
                   aes(x = factor(cluster), 
-                      y = lab_hba1c_original, 
+                      y = lab_hba1c_unscaled, 
                       fill = factor(cluster))) +
   geom_boxplot() +
   labs(title = "HbA1c by Cluster", x = "Cluster", y = "HbA1c (%)") +
